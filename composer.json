@@ -1,0 +1,49 @@
+{
+    "name": "mortscode/feedback",
+    "description": "A comments and reviews plugin for Craft CMS 3.x",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "feedback"
+    ],
+    "support": {
+        "docs": "https://github.com/mortscode/feedback/blob/master/README.md",
+        "issues": "https://github.com/mortscode/feedback/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Scot Mortimer",
+            "homepage": "mortscode.com"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0"
+    },
+    "require-dev": {
+      "craftcms/cms": "^3.2.0",
+      "codeception/codeception": "^3.0",
+      "vlucas/phpdotenv": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+          "mortscode\\feedback\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Feedback",
+        "handle": "feedback",
+        "developer": "mortscode",
+        "developerUrl": "https://github.com/mortscode",
+        "documentationUrl": "https://github.com/mortscode/feedback/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/mortscode/feedback/master/CHANGELOG.md",
+        "components": {
+            "feedbackService": "mortscode\\feedback\\services\\FeedbackService"
+        },
+        "class": "mortscode\\feedback\\Feedback"
+    }
+}

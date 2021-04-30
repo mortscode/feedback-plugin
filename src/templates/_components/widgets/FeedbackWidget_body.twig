@@ -1,0 +1,20 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Feedback plugin for Craft CMS
+ *
+ * FeedbackWidget Widget Body
+ *
+ * @author    Scot Mortimer
+ * @copyright Copyright (c) 2021 Scot Mortimer
+ * @link      mortscode.com
+ * @package   Feedback
+ * @since     1.0.0
+ */
+#}
+
+{% set iconUrl = view.getAssetManager().getPublishedUrl('@mortscode/feedback/assetbundles/feedbackwidgetwidget/dist', true) ~ '/img/FeedbackWidget-icon.svg' %}
+
+<img src="{{ iconUrl }}" height="64" width="64" />
+
+<p>{{ message }}</p>

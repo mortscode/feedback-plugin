@@ -1,0 +1,26 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Feedback plugin for Craft CMS
+ *
+ * FeedbackWidget Widget Settings
+ *
+ * @author    Scot Mortimer
+ * @copyright Copyright (c) 2021 Scot Mortimer
+ * @link      mortscode.com
+ * @package   Feedback
+ * @since     1.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("mortscode\\feedback\\assetbundles\\feedback\\FeedbackAsset") %}
+
+{{ forms.textField({
+    label: 'Message',
+    instructions: 'Enter a message here.',
+    id: 'message',
+    name: 'message',
+    value: widget['message']})
+}}
