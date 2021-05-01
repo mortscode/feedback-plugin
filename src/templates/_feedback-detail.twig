@@ -1,0 +1,104 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("mortscode\\feedback\\assetbundles\\feedback\\FeedbackAsset") %}
+
+{% set fullPageForm = true %}
+
+{% set entry = craft.entries.id(entryId).one() %}
+{% set feedback = craft.feedback.getFeedbackById(feedbackId) %}
+
+{% if feedback.ipAddress %}
+	{% set location = craft.feedback.getLocationByIp(feedback.ipAddress) %}
+{% endif %}
+
+{% set title = entry.title %}
+
+{% set crumbs = [
+    { label: 'Feedback', url: url('feedback') }
+] %}
+
+{% set statusOptionsArr = craft.feedback.getStatusValues() %}
+{% set statusOptions = [] %}
+
+{% for option in statusOptionsArr %}
+	{% set optionItem = {
+		label: option|capitalize,
+		value: option
+	} %}
+
+	{% set statusOptions = statusOptions|merge([optionItem]) %}
+{% endfor %}
+
+{% set statusLabel = "<span class='status " ~ feedback.status ~ "'></span>Status" %}
+
+{% block details %}
+	<div id="settings" class="meta">
+		{{ forms.selectField({
+			label: statusLabel,
+			id: 'status',
+			name: 'status',
+			options: statusOptions,
+			value: feedback.status ?? null
+		}) }}
+	</div>
+	<div class="meta read-only">
+		<div class="data">
+			<h5 class="heading">Posted:</h5>
+			<div class="value">
+				<span class="user-agent">{{ feedback.dateCreated|date() }}</span>
+			</div>
+			<h5 class="heading">Updated:</h5>
+			<div class="value">
+				<span class="user-agent">{{ feedback.dateUpdated|date() }}</span>
+			</div>
+			<h5 class="heading">Device:</h5>
+			<div class="value">
+				<span class="user-agent">{{ feedback.userAgent ?? 'None given' }}</span>
+			</div>
+			{% if location is defined and location %}
+				<h5 class="heading">Location:</h5>
+				<div class="value">
+					<span class="user-agent">{{ location.city }}, {{ location.region }}, {{ location.country }}</span>
+				</div>
+			{% else %}
+				<h5 class="heading">IP Address:</h5>
+				<div class="value">
+					<span class="user-agent">{{ feedback.ipAddress ?? 'None given' }}</span>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}
+
+{% block content %}
+	<input type="hidden" name="action" value="feedback/reviews/update">
+	<input type="hidden" name="entryId" value="{{ entry.id }}">
+	<input type="hidden" name="reviewId" value="{{ feedback.id }}">
+	<input type="hidden" name="name" value="{{ feedback.name }}">
+	<input type="hidden" name="email" value="{{ feedback.email }}">
+	<input type="hidden" name="rating" value="{{ feedback.rating }}">
+	<input type="hidden" name="comment" value="{{ feedback.comment }}">
+	{{ redirectInput('feedback') }}
+
+	<div id="review">
+		<div class="review-content">
+			<h1 class="review-name">{{ feedback.name }}</h1>
+			<p class="review-email">{{ feedback.email }}</p>
+			<p class="review-rating">Rating:
+				{{ feedback.rating }}
+				/ 5</p>
+			<p class="review-comment">{{ feedback.comment }}</p>
+		</div>
+		<hr>
+		{{ forms.textAreaField({
+            first: true,
+            label: 'Response',
+            id: 'response',
+            name: 'response',
+            rows: '5',
+            value: feedback.response ?? '',
+            errors: comment.getErrors('response') ?? '',
+        }) }}
+	</div>
+{% endblock %}

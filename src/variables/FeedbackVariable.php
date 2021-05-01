@@ -13,6 +13,7 @@ namespace mortscode\feedback\variables;
 use mortscode\feedback\Feedback;
 
 use Craft;
+use mortscode\feedback\models\FeedbackModel;
 
 /**
  * Feedback Variable
@@ -32,25 +33,78 @@ class FeedbackVariable
     // =========================================================================
 
     /**
-     * Whatever you want to output to a Twig template can go into a Variable method.
-     * You can have as many variable functions as you want.  From any Twig template,
-     * call it like this:
+     * createFeedbackRecord
      *
-     *     {{ craft.feedback.exampleVariable }}
+     * @param FeedbackModel $feedback
+     * @return bool
+     */
+    public function createFeedbackRecord(FeedbackModel $feedback): bool
+    {
+        return Feedback::$plugin->feedbackService->createFeedbackRecord($feedback);
+    }
+
+    /**
+     * updateFeedbackRecord
      *
-     * Or, if your variable requires parameters from Twig:
+     * @param int $feedbackId
+     * @param object $attributes
+     * @return bool
+     */
+    public function updateFeedbackRecord(int $feedbackId, object $attributes): bool
+    {
+        return Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes);
+    }
+
+    /**
+     * getEntryFeedback
      *
-     *     {{ craft.feedback.exampleVariable(twigValue) }}
+     * @param int $entryId
+     * @return array[ReviewModel]
+     */
+    public function getEntryFeedback(int $entryId): array
+    {
+        return Feedback::$plugin->feedbackService->getEntryFeedback($entryId);
+    }
+
+    /**
+     * getFeedbackById
      *
-     * @param null $optional
+     * @param  mixed $feedbackId
+     * @return FeedbackModel
+     */
+    public function getFeedbackById($feedbackId): FeedbackModel
+    {
+        return Feedback::$plugin->feedbackService->getFeedbackById($feedbackId);
+    }
+
+    /**
+     * getStatusOptions
+     *
+     * @return array
+     */
+    public function getStatusValues(): array
+    {
+        return Feedback::$plugin->feedbackService->getStatusValues();
+    }
+
+    /**
+     * getReCaptchaKey
+     *
      * @return string
      */
-    public function exampleVariable($optional = null)
+    public function getRecaptchaKey(): ?string
     {
-        $result = "And away we go to the Twig template...";
-        if ($optional) {
-            $result = "I'm feeling optional today...";
-        }
-        return $result;
+        return Feedback::$plugin->feedbackService->getRecaptchaKey();
+    }
+
+    /**
+     * getLocationByIp
+     *
+     * @param string $ip
+     * @return array
+     */
+    public function getLocationByIp(string $ip): array
+    {
+        return Feedback::$plugin->feedbackService->getLocationByIp($ip);
     }
 }

@@ -17,10 +17,80 @@
 
 {% do view.registerAssetBundle("mortscode\\feedback\\assetbundles\\feedback\\FeedbackAsset") %}
 
+{# Get all the status values available #}
+{% set statusList = craft.feedback.getStatusValues() %}
+{% set statusOptions = [] %}
+{% for label, value in statusList %}
+    {% set statusOptions = statusOptions|merge([
+        {'value': value, 'label': label}
+    ]) %}
+{% endfor %}
+
+{# Create array of all the available entry types#}
+{% set allEntryTypes = craft.app.sections.allSections %}
+{% set entryTypes = [] %}
+{% for entryType in allEntryTypes %}
+    {% set entryTypes = entryTypes|merge([{label: entryType.name, value: entryType.handle}]) %}
+{% endfor %}
+
+
+{% set statusLabel = "<span class='status " ~ settings.defaultStatus ~ "'></span>Default Status" %}
+
+{{ forms.selectField({
+    label: statusLabel,
+    id: 'default-status',
+    name: 'defaultStatus',
+    options: statusOptions,
+    value: settings.defaultStatus,
+    first: true
+}) }}
+
 {{ forms.textField({
-    label: 'Some Field',
-    instructions: 'Enter some setting here.',
-    id: 'someAttribute',
-    name: 'someAttribute',
-    value: settings['someAttribute']})
-}}
+    label: 'Main Column Title',
+    id: 'mainColumnTitle',
+    name: 'mainColumnTitle',
+    value: settings.mainColumnTitle,
+    size: 50
+}) }}
+
+{{ forms.checkboxSelectField({
+    label: 'Feedback Sections',
+    id: 'feedbackSections',
+    name: 'feedbackSections',
+    options: entryTypes,
+    values: settings.feedbackSections|default(null),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'ReCaptcha Site Key',
+    id: 'recaptchaSiteKey',
+    name: 'recaptchaSiteKey',
+    value: settings.recaptchaSiteKey,
+    suggestEnvVars: true,
+    size: 50
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'ReCaptcha Secret Key',
+    id: 'recaptchaSecretKey',
+    name: 'recaptchaSecretKey',
+    value: settings.recaptchaSecretKey,
+    suggestEnvVars: true,
+    size: 50
+}) }}
+
+<hr/>
+<h2>Disqus Import</h2>
+<p>Import an XML file from Disqus into existing entries. Reviews will only be imported into the "Reviewable Sections" selected above.</p>
+
+{{ forms.autosuggestField({
+    label: 'Disqus User Handle',
+    instructions: 'Add your Disqus user handle (shortname) to import Responses',
+    id: 'disqusUserHandle',
+    name: 'disqusUserHandle',
+    value: settings.disqusUserHandle,
+    suggestEnvVars: true,
+    size: 50
+}) }}
+
+<a class="btn add icon" href="{{ url('feedback/import/xml') }}">Import XML</a>

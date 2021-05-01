@@ -2,17 +2,16 @@
 /**
  * Feedback plugin for Craft CMS 3.x
  *
- * A comments and reviews plugin for Craft CMS 3.x
+ * An entry feedback plugin
  *
- * @link      mortscode.com
- * @copyright Copyright (c) 2021 Scot Mortimer
+ * @link      https://github.com/mortscode
+ * @copyright Copyright (c) 2020 Scot Mortimer
  */
 
 namespace mortscode\feedback\models;
 
-use mortscode\feedback\Feedback;
+use mortscode\feedback\enums\FeedbackType;
 
-use Craft;
 use craft\base\Model;
 
 /**
@@ -23,7 +22,7 @@ use craft\base\Model;
  *
  * https://craftcms.com/docs/plugins/models
  *
- * @author    Scot Mortimer
+ * @author    mortscode
  * @package   Feedback
  * @since     1.0.0
  */
@@ -33,11 +32,81 @@ class FeedbackModel extends Model
     // =========================================================================
 
     /**
-     * Some model attribute
+     * @var int|null ID
+     */
+    public $id;
+
+    /**
+     * @var int|null Entry ID
+     */
+    public $entryId;
+
+    /**
+     * @var \DateTime|null Date created
+     */
+    public $dateCreated;
+
+    /**
+     * @var \DateTime|null Date updated
+     */
+    public $dateUpdated;
+
+    /**
+     * name
      *
      * @var string
      */
-    public $someAttribute = 'Some Default';
+    public $name;
+
+    /**
+     * email
+     *
+     * @var string
+     */
+    public $email;
+
+    /**
+     * rating
+     *
+     * @var int
+     */
+    public $rating = null;
+
+    /**
+     * comment
+     *
+     * @var string
+     */
+    public $comment = null;
+
+    /**
+     * response
+     *
+     * @var string
+     */
+    public $response = null;
+
+    /**
+     * ipAddress
+     *
+     * @var string
+     */
+    public $ipAddress = null;
+
+    /**
+     * userAgent
+     *
+     * @var string
+     */
+    public $userAgent = null;
+
+    /**
+     * feedbackType
+     *
+     * @var string
+     */
+    public $feedbackType = FeedbackType::Review;
+
 
     // Public Methods
     // =========================================================================
@@ -52,11 +121,35 @@ class FeedbackModel extends Model
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            ['someAttribute', 'string'],
-            ['someAttribute', 'default', 'value' => 'Some Default'],
+            // the name, email attributes are required
+            [
+                ['name', 'email', 'feedbackType'],
+                'required',
+                'message' => '{attribute} is required'
+            ],
+
+            // the email attribute should be a valid email address
+            ['email', 'email'],
+
+            // the comment field should not have links in it
+            ['comment', 'match',
+                'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',
+                'not' => true,
+                'message' => 'Your comment cannot contain urls or links.'
+            ],
         ];
+    }
+
+    /**
+     * Define what is returned when model is converted to string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string)$this->rating;
     }
 }

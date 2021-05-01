@@ -2,80 +2,53 @@
 /**
  * Feedback plugin for Craft CMS 3.x
  *
- * A comments and reviews plugin for Craft CMS 3.x
+ * Get aggregate ratings on your entries
  *
- * @link      mortscode.com
- * @copyright Copyright (c) 2021 Scot Mortimer
+ * @link      https://github.com/mortscode
+ * @copyright Copyright (c) 2020 Mortscode
  */
 
 namespace mortscode\feedback\models;
 
-use mortscode\feedback\Feedback;
-
 use Craft;
 use craft\base\Model;
-use mortscode\feedback\enums\FeedbackStatus;
 
 /**
- * Feedback Settings Model
- *
- * This is a model used to define the plugin's settings.
+ * FeedbackEntryModel Model
  *
  * Models are containers for data. Just about every time information is passed
  * between services, controllers, and templates in Craft, it’s passed via a model.
  *
  * https://craftcms.com/docs/plugins/models
  *
- * @author    Scot Mortimer
+ * @author    Mort
  * @package   Feedback
  * @since     1.0.0
  */
-class Settings extends Model
+class FeedbackEntryModel extends Model
 {
     // Public Properties
     // =========================================================================
 
     /**
-     * default status for new reviews
-     *
-     * @var string
+     * @var int|null Total Ratings
      */
-    public $defaultStatus = FeedbackStatus::Pending;
+    public $totalRatings;
 
     /**
-     * Title heading for the entry column in the CP
-     *
-     * @var string
+     * @var int|null Average Rating
      */
-    public $mainColumnTitle = "Entry";
+    public $averageRating;
 
     /**
-     * ReCapcha Site Key
-     *
-     * @var string
+     * @var int|null Approved Feedback
      */
-    public $recaptchaSiteKey = null;
-
+    public $approvedFeedback;
+   
     /**
-     * ReCapcha Secret Key
-     *
-     * @var string
+     * @var int|null Pending Feedback
      */
-    public $recaptchaSecretKey = null;
-
-    /**
-     * Discuss User Handle
-     *
-     * @var string
-     */
-    public $disqusUserHandle = null;
-
-    /**
-     * which sections are able to be reviewed
-     *
-     * @var array
-     */
-    public $feedbackSections = [];
+    public $pendingFeedback;
 
     // Public Methods
     // =========================================================================
@@ -93,7 +66,18 @@ class Settings extends Model
     public function rules(): array
     {
         return [
-            ['defaultStatus', 'string'],
+            // required attributes
+            [['totalRatings', 'AverageRating'], 'required'],
         ];
+    }
+
+    /**
+     * Define what is returned when model is converted to string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string)$this->averageRating;
     }
 }

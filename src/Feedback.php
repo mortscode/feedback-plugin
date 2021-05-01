@@ -10,11 +10,13 @@
 
 namespace mortscode\feedback;
 
-use mortscode\feedback\services\FeedbackService as FeedbackServiceService;
+
+use mortscode\feedback\elements\FeedbackElement;
+use mortscode\feedback\services\FeedbackService;
 use mortscode\feedback\variables\FeedbackVariable;
 use mortscode\feedback\models\Settings;
-use mortscode\feedback\fields\FeedbackField as FeedbackFieldField;
-use mortscode\feedback\widgets\FeedbackWidget as FeedbackWidgetWidget;
+use mortscode\feedback\fields\FeedbackField;
+use mortscode\feedback\widgets\FeedbackWidget;
 
 use Craft;
 use craft\base\Plugin;
@@ -28,6 +30,9 @@ use craft\services\Dashboard;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 
+use mortscode\feedback\fields\AverageRating;
+use mortscode\feedback\fields\TotalPending;
+use mortscode\feedback\fields\TotalRatings;
 use yii\base\Event;
 
 /**
@@ -44,7 +49,7 @@ use yii\base\Event;
  * @package   Feedback
  * @since     1.0.0
  *
- * @property  FeedbackServiceService $feedbackService
+ * @property  FeedbackService $feedbackService
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
@@ -99,10 +104,15 @@ class Feedback extends Plugin
      * you do not need to load it in your init() method.
      *
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
         self::$plugin = $this;
+
+        // Register services as components
+//        $this->setComponents([
+//            'feedback' => FeedbackService::class
+//        ]);
 
         // Register our site routes
         Event::on(
@@ -118,7 +128,8 @@ class Feedback extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['cpActionTrigger1'] = 'feedback/default/do-something';
+
+                $event->rules['feedback/entries/<entryId:\d+>/<feedbackId:\d+>'] = ['template' => 'feedback/_feedback-detail'];
             }
         );
 
@@ -127,6 +138,7 @@ class Feedback extends Plugin
             Elements::class,
             Elements::EVENT_REGISTER_ELEMENT_TYPES,
             function (RegisterComponentTypesEvent $event) {
+                $event->types[] = FeedbackElement::class;
             }
         );
 
@@ -135,7 +147,9 @@ class Feedback extends Plugin
             Fields::class,
             Fields::EVENT_REGISTER_FIELD_TYPES,
             function (RegisterComponentTypesEvent $event) {
-                $event->types[] = FeedbackFieldField::class;
+                $event->types[] = AverageRating::class;
+                $event->types[] = TotalRatings::class;
+                $event->types[] = TotalPending::class;
             }
         );
 
@@ -144,7 +158,7 @@ class Feedback extends Plugin
             Dashboard::class,
             Dashboard::EVENT_REGISTER_WIDGET_TYPES,
             function (RegisterComponentTypesEvent $event) {
-                $event->types[] = FeedbackWidgetWidget::class;
+                $event->types[] = FeedbackWidget::class;
             }
         );
 

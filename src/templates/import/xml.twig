@@ -1,0 +1,26 @@
+{% extends "_layouts/cp" %}
+{% import '_includes/forms' as forms %}
+
+{% set fullPageForm = true %}
+
+{% set title = "Import XML" %}
+
+{% do view.registerAssetBundle("mortscode\\reviews\\assetbundles\\feedback\\FeedbackAsset") %}
+
+{% set crumbs = [
+    { label: 'Feedback', url: url('feedback') }
+] %}
+
+{% block content %}
+<h2>Import Disqus XML</h2>
+<p>Download your <a href="https://disqus.com/admin/discussions/export/" target="_blank">Disqus XML file</a> and paste the contents of the file below:</p>
+<input type="hidden" name="action" value="feedback/feedback/import-xml">
+
+{{ forms.textAreaField({
+    first: true,
+    id: 'xml',
+    name: 'xml',
+    rows: 20
+}) }}
+
+{% endblock %}

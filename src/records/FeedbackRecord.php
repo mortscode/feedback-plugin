@@ -48,8 +48,8 @@ class FeedbackRecord extends ActiveRecord
      *
      * @return string the table name
      */
-    public static function tableName()
+    public static function tableName(): string
     {
-        return '{{%feedback_feedbackrecord}}';
+        return '{{%feedback_record}}';
     }
 }

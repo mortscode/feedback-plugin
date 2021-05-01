@@ -10,6 +10,7 @@
 
 namespace mortscode\feedback\migrations;
 
+use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\Feedback;
 
 use Craft;
@@ -93,24 +94,37 @@ class Install extends Migration
      *
      * @return bool
      */
-    protected function createTables()
+    protected function createTables(): bool
     {
         $tablesCreated = false;
 
-    // feedback_feedbackrecord table
-        $tableSchema = Craft::$app->db->schema->getTableSchema('{{%feedback_feedbackrecord}}');
+    // feedback_record table
+        $tableSchema = Craft::$app->db->schema->getTableSchema('{{%feedback_record}}');
         if ($tableSchema === null) {
             $tablesCreated = true;
             $this->createTable(
-                '{{%feedback_feedbackrecord}}',
+                '{{%feedback_record}}',
                 [
-                    'id' => $this->primaryKey(),
+                    'id' => $this->integer()->notNull(),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
-                // Custom columns in the table
-                    'siteId' => $this->integer()->notNull(),
-                    'some_field' => $this->string(255)->notNull()->defaultValue(''),
+                    // Custom columns in the table
+                    'entryId' => $this->integer()->notNull(),
+                    'name' => $this->string(255)->notNull(),
+                    'email' => $this->string(255)->notNull(),
+                    'rating' => $this->integer(),
+                    'comment' => $this->text(),
+                    'response' => $this->text(),
+                    'status' => $this->enum('status', [
+                        FeedbackStatus::Approved,
+                        FeedbackStatus::Pending,
+                        FeedbackStatus::Spam,
+                    ]),
+                    'ipAddress' => $this->string(),
+                    'userAgent' => $this->string(),
+                    'feedbackType' => $this->enum('feedbackType', ['review', 'question']),
+                    'PRIMARY KEY(id)',
                 ]
             );
         }
@@ -123,26 +137,10 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function createIndexes()
+    protected function createIndexes(): void
     {
-    // feedback_feedbackrecord table
-        $this->createIndex(
-            $this->db->getIndexName(
-                '{{%feedback_feedbackrecord}}',
-                'some_field',
-                true
-            ),
-            '{{%feedback_feedbackrecord}}',
-            'some_field',
-            true
-        );
-        // Additional commands depending on the db driver
-        switch ($this->driver) {
-            case DbConfig::DRIVER_MYSQL:
-                break;
-            case DbConfig::DRIVER_PGSQL:
-                break;
-        }
+        // reviews_record table
+        $this->createIndex(null, '{{%feedback_record}}', 'entryId', false);
     }
 
     /**
@@ -152,16 +150,10 @@ class Install extends Migration
      */
     protected function addForeignKeys()
     {
-    // feedback_feedbackrecord table
+        // feedback_record table foreign key
         $this->addForeignKey(
-            $this->db->getForeignKeyName('{{%feedback_feedbackrecord}}', 'siteId'),
-            '{{%feedback_feedbackrecord}}',
-            'siteId',
-            '{{%sites}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
+            $this->db->getForeignKeyName('{{%feedback_record}}', 'id'),
+            '{{%feedback_record}}', 'id', '{{%elements}}', 'id', 'CASCADE', null);
     }
 
     /**
@@ -180,7 +172,7 @@ class Install extends Migration
      */
     protected function removeTables()
     {
-    // feedback_feedbackrecord table
-        $this->dropTableIfExists('{{%feedback_feedbackrecord}}');
+    // feedback_record table
+        $this->dropTableIfExists('{{%feedback_record}}');
     }
 }
