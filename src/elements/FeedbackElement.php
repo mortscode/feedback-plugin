@@ -10,6 +10,7 @@ use craft\helpers\UrlHelper;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
+use mortscode\feedback\Feedback;
 use mortscode\feedback\records\FeedbackRecord;
 use yii\db\Exception;
 
@@ -178,7 +179,7 @@ class FeedbackElement extends Element
     protected static function defineSources(string $context = null): array
     {
         function _getPending($feedbackType) {
-            return '2';
+            return Feedback::$plugin->feedbackService->getPendingFeedback($feedbackType);
         }
 
         return [
@@ -198,6 +199,7 @@ class FeedbackElement extends Element
             [
                 'key' => 'questions',
                 'label' => 'Questions',
+                'badgeCount' => _getPending(FeedbackType::Question),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Question,
                 ]

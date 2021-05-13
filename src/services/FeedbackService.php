@@ -228,5 +228,17 @@ class FeedbackService extends Component
         return $location;
     }
 
+    /**
+     * getPendingFeedback
+     *
+     * @param string $type
+     * @return int
+     */
+    public function getPendingFeedback(string $type): int
+    {
+        return FeedbackRecord::find()
+            ->where(['feedbackType' => $type, 'feedbackStatus' => FeedbackStatus::Pending])
+            ->count();
+    }
 
 }
