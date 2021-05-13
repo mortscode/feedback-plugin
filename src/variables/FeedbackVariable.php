@@ -48,10 +48,10 @@ class FeedbackVariable
      * updateFeedbackRecord
      *
      * @param int $feedbackId
-     * @param object $attributes
+     * @param array $attributes
      * @return bool
      */
-    public function updateFeedbackRecord(int $feedbackId, object $attributes): bool
+    public function updateFeedbackRecord(int $feedbackId, array $attributes): bool
     {
         return Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes);
     }
@@ -107,5 +107,16 @@ class FeedbackVariable
     public function getLocationByIp(string $ip): array
     {
         return Feedback::$plugin->feedbackService->getLocationByIp($ip);
+    }
+
+    /**
+     * getPendingFeedback
+     *
+     * @param string $type
+     * @return int
+     */
+    public function getPendingFeedback(string $type): int
+    {
+        return Feedback::$plugin->feedbackService->getPendingFeedback($type);
     }
 }
