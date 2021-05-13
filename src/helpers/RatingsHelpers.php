@@ -5,6 +5,7 @@ namespace mortscode\feedback\helpers;
 // get the new average
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
+use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\records\ReviewsRecord;
 
 class RatingsHelpers
@@ -16,10 +17,10 @@ class RatingsHelpers
      * @return float
      */
     public static function getAverageRating(int $entryId): float {
-        $average = ReviewsRecord::find()
+        $average = FeedbackRecord::find()
             ->where([
                 'entryId' => $entryId,
-                'status' => FeedbackStatus::Approved,
+                'feedbackStatus' => FeedbackStatus::Approved,
                 'feedbackType' => FeedbackType::Review,
             ])
             ->andWhere(['not', ['rating' => null]])
@@ -28,10 +29,10 @@ class RatingsHelpers
     }
 
     public static function getTotalRatings(int $entryId): int {
-        $total = ReviewsRecord::find()
+        $total = FeedbackRecord::find()
             ->where([
                 'entryId' => $entryId,
-                'status' => FeedbackStatus::Approved,
+                'feedbackStatus' => FeedbackStatus::Approved,
                 'feedbackType' => FeedbackType::Review,
             ])
             ->andWhere(['not', ['rating' => null]])
@@ -40,10 +41,10 @@ class RatingsHelpers
     }
 
     public static function getTotalPending(int $entryId): int {
-        $pending = ReviewsRecord::find()
+        $pending = FeedbackRecord::find()
             ->where([
                 'entryId' => $entryId,
-                'status' => FeedbackStatus::Pending,
+                'feedbackStatus' => FeedbackStatus::Pending,
             ])
             ->all();
         return count($pending);

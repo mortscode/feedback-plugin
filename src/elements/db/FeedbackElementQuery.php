@@ -3,20 +3,17 @@
 namespace mortscode\feedback\elements\db;
 
 use craft\elements\db\ElementQuery;
+use craft\helpers\Db;
+use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackStatus;
 
 class FeedbackElementQuery extends ElementQuery
 {
     public $entryId;
     public $name;
-    public $email;
     public $rating;
-    public $comment;
-    public $status;
-    public $response;
-    public $ipAddress;
-    public $userAgent;
     public $feedbackType;
+    public $feedbackStatus;
 
     public function entryId($value): FeedbackElementQuery
     {
@@ -30,45 +27,21 @@ class FeedbackElementQuery extends ElementQuery
         return $this;
     }
 
-    public function email($value): FeedbackElementQuery
-    {
-        $this->email = $value;
-        return $this;
-    }
-
     public function rating($value): FeedbackElementQuery
     {
         $this->rating = $value;
         return $this;
     }
 
-    public function comment($value): FeedbackElementQuery
-    {
-        $this->comment = $value;
-        return $this;
-    }
-
-    public function response($value): FeedbackElementQuery
-    {
-        $this->response = $value;
-        return $this;
-    }
-
-    public function ipAddress($value): FeedbackElementQuery
-    {
-        $this->ipAddress = $value;
-        return $this;
-    }
-
-    public function userAgent($value): FeedbackElementQuery
-    {
-        $this->userAgent = $value;
-        return $this;
-    }
-
     public function feedbackType($value): FeedbackElementQuery
     {
         $this->feedbackType = $value;
+        return $this;
+    }
+
+    public function feedbackStatus($value): FeedbackElementQuery
+    {
+        $this->feedbackStatus = $value;
         return $this;
     }
 
@@ -81,13 +54,9 @@ class FeedbackElementQuery extends ElementQuery
         $this->query->select([
             'feedback_record.entryId',
             'feedback_record.name',
-            'feedback_record.email',
             'feedback_record.rating',
-            'feedback_record.comment',
-            'feedback_record.response',
-            'feedback_record.ipAddress',
-            'feedback_record.userAgent',
             'feedback_record.feedbackType',
+            'feedback_record.feedbackStatus',
         ]);
 
         if ($this->entryId) {
@@ -104,13 +73,6 @@ class FeedbackElementQuery extends ElementQuery
             );
         }
 
-        if ($this->email) {
-            $this->subQuery->andWhere(Db::parseParam(
-                'feedback_record.email',
-                $this->email)
-            );
-        }
-
         if ($this->rating) {
             $this->subQuery->andWhere(Db::parseParam(
                 'feedback_record.rating',
@@ -118,45 +80,17 @@ class FeedbackElementQuery extends ElementQuery
             );
         }
 
-        if ($this->comment) {
-            $this->subQuery->andWhere(Db::parseParam(
-                'feedback_record.comment',
-                $this->comment)
-            );
-        }
-
-        if ($this->status) {
-            $this->subQuery->andWhere(Db::parseParam(
-                'feedback_record.status',
-                $this->status)
-            );
-        }
-
-        if ($this->response) {
-            $this->subQuery->andWhere(Db::parseParam(
-                'feedback_record.response',
-                $this->response)
-            );
-        }
-
-        if ($this->ipAddress) {
-            $this->subQuery->andWhere(Db::parseParam(
-                'feedback_record.ipAddress',
-                $this->ipAddress)
-            );
-        }
-
-        if ($this->userAgent) {
-            $this->subQuery->andWhere(Db::parseParam(
-                'feedback_record.userAgent',
-                $this->userAgent)
-            );
-        }
-
         if ($this->feedbackType) {
             $this->subQuery->andWhere(Db::parseParam(
-                'feedback_record.$this->feedbackType',
+                'feedback_record.feedbackType',
                 $this->feedbackType)
+            );
+        }
+
+        if ($this->feedbackStatus) {
+            $this->subQuery->andWhere(Db::parseParam(
+                'feedback_record.feedbackStatus',
+                $this->feedbackStatus)
             );
         }
 
@@ -167,12 +101,12 @@ class FeedbackElementQuery extends ElementQuery
     protected function statusCondition(string $status)
     {
         switch ($status) {
-            case FeedbackStatus::Approved:
-                return ['isApproved' => true];
-            case FeedbackStatus::Pending:
-                return ['isPending' => true];
-            case FeedbackStatus::Spam:
-                return ['isSpam' => true];
+            case FeedbackElement::STATUS_APPROVED:
+                return [FeedbackStatus::Approved => true];
+            case FeedbackElement::STATUS_PENDING:
+                return [FeedbackStatus::Pending => true];
+            case FeedbackElement::STATUS_SPAM:
+                return [FeedbackStatus::Spam => true];
             default:
                 // call the base method for `enabled` or `disabled`
                 return parent::statusCondition($status);

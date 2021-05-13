@@ -2,6 +2,7 @@
 
 namespace mortscode\feedback\elements;
 
+use Craft;
 use craft\base\Element;
 use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
@@ -9,8 +10,14 @@ use craft\helpers\UrlHelper;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
+use mortscode\feedback\records\FeedbackRecord;
 use yii\db\Exception;
 
+/**
+ * Class FeedbackElement
+ *
+ * @package mortscode\feedback\elements
+ */
 class FeedbackElement extends Element
 {
     /**
@@ -30,6 +37,10 @@ class FeedbackElement extends Element
     }
 
     // Has Content
+
+    /**
+     * @return bool
+     */
     public static function hasContent(): bool
     {
         return true;
@@ -53,12 +64,12 @@ class FeedbackElement extends Element
     public function getStatus(): string
     {
 
-        if ($this->status === 'isApproved') {
-            return FeedbackStatus::Approved;
-        }
-        if ($this->status === 'isSpam') {
-            return FeedbackStatus::Spam;
-        }
+//        if ($this->feedbackStatus == FeedbackStatus::Approved) {
+//            return FeedbackStatus::Approved;
+//        }
+//        if ($this->feedbackStatus == FeedbackStatus::Spam) {
+//            return FeedbackStatus::Spam;
+//        }
 
         return FeedbackStatus::Pending;
     }
@@ -140,77 +151,108 @@ class FeedbackElement extends Element
      */
     public $feedbackType = null;
 
+    /**
+     * feedbackStatus
+     *
+     * @var string
+     */
+    public $feedbackStatus = FeedbackStatus::Pending;
+
+    /**
+     * isImport
+     *
+     * @var bool
+     */
+    public $isImport = false;
+
     protected function uiLabel(): ?string
     {
         return $this->name;
     }
 
-    public function getCpEditUrl(): UrlHelper
+    public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl("feedback/entries/$this->entryId/$this->id");
     }
 
-    // AfterSave method
-
-    /**
-     * @throws Exception
-     */
-    public function afterSave(bool $isNew): void
-    {
-        if ($isNew) {
-            \Craft::$app->db->createCommand()
-                ->insert('{{%feedback_record}}', [
-                    'id' => $this->id,
-                    'name' => $this->name,
-                    'email' => $this->email,
-                    'entryId' => $this->entryId,
-                    'rating' => $this->rating,
-                    'comment' => $this->comment,
-                    'response' => $this->response,
-                    'ipAddress' => $this->ipAddress,
-                    'userAgent' => $this->userAgent,
-                    'feedbackType' => $this->feedbackType,
-                ])
-                ->execute();
-        } else {
-            \Craft::$app->db->createCommand()
-                ->update('{{%feedback_record}}', [
-                    'name' => $this->name,
-                    'email' => $this->email,
-                    'rating' => $this->rating,
-                    'comment' => $this->comment,
-                    'response' => $this->response,
-                    'feedbackType' => $this->feedbackType,
-                ], ['id' => $this->id])
-                ->execute();
-        }
-
-        parent::afterSave($isNew);
-    }
-
     protected static function defineSources(string $context = null): array
     {
+        function _getPending($feedbackType) {
+            return '2';
+        }
+
         return [
-            ['key' => '*', 'label' => 'All Feedback', 'criteria' => []],
+            [
+                'key' => '*',
+                'label' => 'All Feedback',
+                'criteria' => []
+            ],
+            [
+                'key' => 'reviews',
+                'label' => 'Reviews',
+                'badgeCount' => _getPending(FeedbackType::Review),
+                'criteria' => [
+                    'feedbackType' => FeedbackType::Review,
+                ]
+            ],
+            [
+                'key' => 'questions',
+                'label' => 'Questions',
+                'criteria' => [
+                    'feedbackType' => FeedbackType::Question,
+                ]
+            ],
         ];
     }
 
     // TABLE ATTRIBUTES
+
+    /**
+     * @return string[]
+     */
     protected static function defineTableAttributes(): array
     {
         return [
             'name' => 'Name',
             'rating' => 'Rating',
             'dateCreated' => 'Created',
+            'dateUpdated' => 'Updated',
         ];
     }
 
+    /**
+     * @param string $source
+     * @return string[]
+     */
     protected static function defineDefaultTableAttributes(string $source): array
     {
         return [
             'name',
             'rating',
-            'dateCreated'
+            'dateCreated',
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    protected static function defineSortOptions(): array
+    {
+        return [
+            'name' => Craft::t('app', 'Name'),
+            'rating' => Craft::t('app', 'Rating'),
+            [
+                'label' => Craft::t('app', 'Date Created'),
+                'orderBy' => 'elements.dateCreated',
+                'attribute' => 'dateCreated',
+                'defaultDir' => 'desc',
+            ],
+            [
+                'label' => Craft::t('app', 'Date Updated'),
+                'orderBy' => 'elements.dateUpdated',
+                'attribute' => 'dateUpdated',
+                'defaultDir' => 'desc',
+            ],
         ];
     }
 
@@ -230,5 +272,71 @@ class FeedbackElement extends Element
         return [
             SetStatus::class,
         ];
+    }
+
+    // VALIDATION RULES
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] =
+            [['name', 'feedbackType'],
+                'required',
+                'message' => '{attribute} is required'
+            ];
+        if (!$this->isImport) {
+            $rules[] = ['email', 'required',
+                    'message' => 'Email is required'
+                ];
+            $rules[] = ['email', 'email'];
+        }
+        $rules[] = ['comment', 'match',
+            'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',
+            'not' => true,
+            'message' => 'Your comment cannot contain urls or links.'
+        ];
+
+        return $rules;
+    }
+
+    // EVENTS
+    // ------------------------------------
+    /**
+     * afterSave Event
+     *
+     * @inheritdoc
+     * @throws Exception if reasons
+     */
+    public function afterSave(bool $isNew): void
+    {
+        if (!$this->propagating) {
+            // Get the category record
+            if (!$isNew) {
+                $feedbackRecord = FeedbackRecord::findOne($this->id);
+
+                if (!$feedbackRecord) {
+                    throw new Exception('Invalid feedback ID: ' . $this->id);
+                }
+            } else {
+                $feedbackRecord = new FeedbackRecord();
+                $feedbackRecord->id = (int)$this->id;
+            }
+
+            $feedbackRecord->entryId = $this->entryId;
+            $feedbackRecord->name = $this->name;
+            $feedbackRecord->email = $this->email;
+            $feedbackRecord->rating = $this->rating ?? null;
+            $feedbackRecord->comment = $this->comment;
+            $feedbackRecord->response = $this->response;
+            $feedbackRecord->ipAddress = $this->ipAddress;
+            $feedbackRecord->userAgent = $this->userAgent;
+            $feedbackRecord->feedbackType = $this->feedbackType;
+            $feedbackRecord->feedbackStatus = $this->feedbackStatus;
+            $feedbackRecord->save(false);
+        }
+
+        parent::afterSave($isNew);
     }
 }

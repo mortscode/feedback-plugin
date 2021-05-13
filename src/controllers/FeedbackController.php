@@ -13,14 +13,11 @@ namespace mortscode\feedback\controllers;
 use craft\elements\Entry;
 use craft\errors\MissingComponentException;
 use GuzzleHttp\Exception\GuzzleException;
+use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
-use mortscode\feedback\helpers\RatingsHelpers;
 use mortscode\feedback\models\FeedbackModel;
-use mortscode\feedback\models\QuestionModel;
-use mortscode\feedback\models\ReviewModel;
-use mortscode\feedback\Reviews;
 use mortscode\feedback\records\FeedbackRecord;
 
 use Craft;
@@ -85,34 +82,42 @@ class FeedbackController extends Controller
 
         if (!$validRecaptcha) {
             // error if ReCaptcha fails
-            Craft::$app->getSession()->setError('Sorry, there was a problem. Please try again.');
+            Craft::$app->getSession()->setError('Sorry, there was a problem validating the feedback. Please try again.');
 
             return null;
         }
 
-        // Create a new FeedbackModel model
-        $feedback = $this->_setFeedbackFromPost();
+        // Create a new FeedbackElement model
+        $feedback = $this->_getFeedbackElementModel();
+        $feedbackVariable = $this->request->getValidatedBodyParam('feedbackVariable') ?? 'feedback';
+
+        // Populate the new element model
+        $this->_populateFeedbackElement($feedback);
+
         // Validate the new FeedbackModel model
         $isValid = $feedback->validate();
 
         if ($isValid) {
-            // feedback is valid, let's create the record
-            $createFeedback = Feedback::$plugin->feedbackService->createFeedbackRecord($feedback);
+            if (!Craft::$app->getElements()->saveElement($feedback)) {
+                if ($this->request->getAcceptsJson()) {
+                    return $this->asJson([
+                        'success' => false,
+                        'errors' => $feedback->getErrors(),
+                    ]);
+                }
 
-            // attempt to create feedback
-            if (!$createFeedback) {
-                // set error if save isn't successful
-                Craft::$app->getSession()->setError('Your review could not be saved. Please try again.');
-                // pass review back to template
+                $this->setFailFlash(Craft::t('app', 'Couldn’t save feedback.'));
+
+                // Send the category back to the template
                 Craft::$app->getUrlManager()->setRouteParams([
-                    'review' => $feedback
+                    $feedbackVariable => $feedback,
                 ]);
 
                 return null;
             }
         } else {
             // review is not valid
-            Craft::$app->getSession()->setError('Please check for errors.');
+            Craft::$app->getSession()->setError('Please check for form validation errors.');
             // pass review back to template
             Craft::$app->getUrlManager()->setRouteParams([
                 'feedback' => $feedback
@@ -121,8 +126,27 @@ class FeedbackController extends Controller
             return null;
         }
 
+        // A nice JSON object of the new data
+        if ($this->request->getAcceptsJson()) {
+            return $this->asJson([
+                'success' => true,
+                'id' => $feedback->id,
+                'name' => $feedback->name,
+                'email' => $feedback->email,
+                'ipAddress' => $feedback->ipAddress,
+                'userAgent' => $feedback->userAgent,
+                'status' => $feedback->getStatus(),
+                'rating' => $feedback->rating,
+                'entryId' => $feedback->entryId,
+                'comment' => $feedback->comment,
+                'feedbackType' => $feedback->feedbackType,
+                'feedbackStatus' => $feedback->feedbackStatus,
+            ]);
+        }
+
         // Ok, definitely valid + saved!
-        return $this->redirectToPostedUrl();
+        $this->setSuccessFlash(Craft::t('app', 'Feedback saved.'));
+        return $this->redirectToPostedUrl($feedback);
     }
 
     /**
@@ -139,18 +163,18 @@ class FeedbackController extends Controller
         $this->requirePostRequest();
         
         $request = Craft::$app->getRequest();
-        $entryId = $request->getRequiredParam('entryId');
         $feedbackId = $request->getRequiredParam('feedbackId');
 
         $attributes[] = [
             'response' => Craft::$app->getRequest()->getParam('response') ?? '',
+            'feedbackStatus' => Craft::$app->getRequest()->getParam('status'),
         ];
 
         Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes[0]);
 
         Craft::$app->getSession()->setNotice('Feedback updated');
 
-        return $this->redirect('feedback/entries/' . $entryId);
+        return $this->redirect('feedback');
     }
 
     /**
@@ -165,7 +189,6 @@ class FeedbackController extends Controller
     public function actionDelete(): Response
     {
         $request = Craft::$app->getRequest();
-        $entryId = $request->getRequiredParam('entryId');
         $feedbackId = $request->getRequiredParam('feedbackId');
 
         Feedback::$plugin->feedbackService->deleteFeedbackById($feedbackId);
@@ -181,6 +204,7 @@ class FeedbackController extends Controller
      * @return void|Response
      * @throws BadRequestHttpException
      * @throws MissingComponentException
+     * @throws \Exception
      */
     public function actionImportXml()
     {
@@ -408,7 +432,7 @@ class FeedbackController extends Controller
                     continue;
                 }
                 
-                $newFeedback = new FeedbackModel();
+                $newFeedback = new FeedbackElement();
     
                 $response = [];
 
@@ -430,7 +454,8 @@ class FeedbackController extends Controller
                 $newFeedback->comment = $comment['message'] ?? 'MESSAGE ERROR';
                 $newFeedback->response = $response[0] ?? null;
                 $newFeedback->feedbackType = FeedbackType::Question;
-                
+                $newFeedback->isImport = true;
+
                 // review is valid, let's create the record
                 $createReview = Feedback::$plugin->feedbackService->createFeedbackRecord($newFeedback);
                 
@@ -449,16 +474,27 @@ class FeedbackController extends Controller
     }
 
     /**
-     * _setFeedbackFromPost
+     * _getFeedbackElementModel
      *
-     * @return FeedbackModel
+     * @return FeedbackElement()
+     */
+    private function _getFeedbackElementModel(): FeedbackElement
+    {
+        // TODO Figure out if we're creating or updating
+        $feedback = new FeedbackElement();
+
+        return $feedback;
+    }
+
+    /**
+     * _populateFeedbackElement
+     *
+     * @param FeedbackElement $feedback
      * @throws BadRequestHttpException
      */
-    private function _setFeedbackFromPost(): FeedbackModel
+    private function _populateFeedbackElement(FeedbackElement $feedback): void
     {
         $request = Craft::$app->getRequest();
-
-        $feedback = new FeedbackModel();
 
         // get IP and User Agent
         $feedback->ipAddress = $request->getUserIP();
@@ -470,9 +506,8 @@ class FeedbackController extends Controller
         $feedback->name = $request->getRequiredParam('name', $feedback->name);
         $feedback->email = $request->getRequiredParam('email', $feedback->email);
         $feedback->comment = $request->getParam('comment', $feedback->comment);
-        $feedback->feedbackType = $request->getParam('$this->feedbackType', $feedback->feedbackType);
-
-        return $feedback;
+        $feedback->feedbackType = $request->getParam('feedbackType', $feedback->feedbackType);
+        $feedback->feedbackStatus = FeedbackStatus::Pending;
     }
 
     /**

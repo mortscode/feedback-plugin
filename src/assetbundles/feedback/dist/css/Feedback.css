@@ -9,3 +9,18 @@
  * @package   Feedback
  * @since     1.0.0
  */
+.status.approved {
+    background-color: #27ae60;
+}
+
+.status.pending {
+    background-color: #f2842d;
+}
+
+.status.spam {
+    background-color: #0f7ccc;
+}
+
+.status.trashed {
+    background-color: #d0021b;
+}

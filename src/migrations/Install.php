@@ -11,6 +11,7 @@
 namespace mortscode\feedback\migrations;
 
 use mortscode\feedback\enums\FeedbackStatus;
+use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
 
 use Craft;
@@ -54,9 +55,10 @@ class Install extends Migration
      * @return boolean return a false value to indicate the migration fails
      * and should not proceed further. All other return values mean the migration succeeds.
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
+
         if ($this->createTables()) {
             $this->createIndexes();
             $this->addForeignKeys();
@@ -116,14 +118,17 @@ class Install extends Migration
                     'rating' => $this->integer(),
                     'comment' => $this->text(),
                     'response' => $this->text(),
-                    'status' => $this->enum('status', [
+                    'ipAddress' => $this->string(),
+                    'userAgent' => $this->string(),
+                    'feedbackType' => $this->enum('feedbackType', [
+                        FeedbackType::Review,
+                        FeedbackType::Question
+                    ]),
+                    'feedbackStatus' => $this->enum('status', [
                         FeedbackStatus::Approved,
                         FeedbackStatus::Pending,
                         FeedbackStatus::Spam,
                     ]),
-                    'ipAddress' => $this->string(),
-                    'userAgent' => $this->string(),
-                    'feedbackType' => $this->enum('feedbackType', ['review', 'question']),
                     'PRIMARY KEY(id)',
                 ]
             );
@@ -139,7 +144,7 @@ class Install extends Migration
      */
     protected function createIndexes(): void
     {
-        // reviews_record table
+        // feedback_record table
         $this->createIndex(null, '{{%feedback_record}}', 'entryId', false);
     }
 
@@ -148,7 +153,7 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function addForeignKeys()
+    protected function addForeignKeys(): void
     {
         // feedback_record table foreign key
         $this->addForeignKey(
@@ -161,7 +166,7 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function insertDefaultData()
+    protected function insertDefaultData(): void
     {
     }
 
@@ -170,7 +175,7 @@ class Install extends Migration
      *
      * @return void
      */
-    protected function removeTables()
+    protected function removeTables(): void
     {
     // feedback_record table
         $this->dropTableIfExists('{{%feedback_record}}');

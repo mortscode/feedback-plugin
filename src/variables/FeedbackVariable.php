@@ -10,6 +10,7 @@
 
 namespace mortscode\feedback\variables;
 
+use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\Feedback;
 
 use Craft;
@@ -59,7 +60,7 @@ class FeedbackVariable
      * getEntryFeedback
      *
      * @param int $entryId
-     * @return array[ReviewModel]
+     * @return array[FeedbackElement]
      */
     public function getEntryFeedback(int $entryId): array
     {
@@ -70,9 +71,9 @@ class FeedbackVariable
      * getFeedbackById
      *
      * @param  mixed $feedbackId
-     * @return FeedbackModel
+     * @return FeedbackElement
      */
-    public function getFeedbackById($feedbackId): FeedbackModel
+    public function getFeedbackById($feedbackId): FeedbackElement
     {
         return Feedback::$plugin->feedbackService->getFeedbackById($feedbackId);
     }

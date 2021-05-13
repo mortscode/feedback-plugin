@@ -12,6 +12,7 @@ namespace mortscode\feedback\services;
 
 use craft\elements\Entry;
 use craft\errors\ElementNotFoundException;
+use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\Feedback;
 
 use Craft;
@@ -48,24 +49,27 @@ class FeedbackService extends Component
     /**
      * createFeedbackRecord
      *
-     * @param $feedback FeedbackModel
+     * @param $feedback FeedbackElement
      * @return bool
      */
-    public function createFeedbackRecord(FeedbackModel $feedback): bool
+    public function createFeedbackRecord(FeedbackElement $feedback): bool
     {
-        $feedbackRecord = new FeedbackRecord();
-        $feedbackRecord->entryId = $feedback->entryId;
-        $feedbackRecord->name = $feedback->name;
-        $feedbackRecord->email = $feedback->email;
-        $feedbackRecord->rating = $feedback->rating ?? null;
-        $feedbackRecord->comment = $feedback->comment;
-        $feedbackRecord->response = $feedback->response;
-        $feedbackRecord->ipAddress = $feedback->ipAddress;
-        $feedbackRecord->userAgent = $feedback->userAgent;
-        $feedbackRecord->feedbackType = $feedback->feedbackType;
+//        craft::dd($feedback);
+//        $feedbackRecord = new FeedbackElement();
+//        $feedbackRecord->entryId = $feedback->entryId;
+//        $feedbackRecord->name = $feedback->name;
+//        $feedbackRecord->email = $feedback->email;
+//        $feedbackRecord->rating = $feedback->rating ?? null;
+//        $feedbackRecord->comment = $feedback->comment;
+//        $feedbackRecord->response = $feedback->response;
+//        $feedbackRecord->ipAddress = $feedback->ipAddress;
+//        $feedbackRecord->userAgent = $feedback->userAgent;
+//        $feedbackRecord->feedbackType = $feedback->feedbackType;
+//        $feedbackRecord->feedbackStatus = $feedback->feedbackStatus;
 
         // save record in DB
-        return $feedbackRecord->save();
+        return Craft::$app->getElements()->saveElement($feedback);
+//        return $feedbackRecord->save();
     }
 
     /**
@@ -84,6 +88,7 @@ class FeedbackService extends Component
             ->where(['id' => $feedbackId])
             ->one();
         $feedbackRecord->response = $attributes['response'];
+        $feedbackRecord->feedbackStatus = $attributes['feedbackStatus'];
 
         // save record in DB
         $recordSaved = $feedbackRecord->save();
@@ -134,45 +139,45 @@ class FeedbackService extends Component
      * Get the feedback items belonging to an entry
      *
      * @param int $entryId
-     * @return array
+     * @return array [FeedbackElement]
      */
     public function getEntryFeedback(int $entryId): array
     {
         // get all records from DB related to entry
         $entryFeedback = FeedbackRecord::find()
-            ->where(['entryId' => $entryId, 'status' => FeedbackStatus::Approved])
+            ->where(['entryId' => $entryId, 'feedbackStatus' => FeedbackStatus::Approved])
             ->orderBy('dateCreated')
             ->all();
 
-        $feedbackModels = [];
+        $feedbackElements = [];
 
         foreach ($entryFeedback as $feedbackRecord) {
-            $feedbackModel = new FeedbackModel();
-            $feedbackModel->setAttributes($feedbackRecord->getAttributes(), false);
+            $feedbackElement = new FeedbackElement();
+            $feedbackElement->setAttributes($feedbackRecord->getAttributes(), false);
 
-            $feedbackModels[] = $feedbackModel;
+            $feedbackElements[] = $feedbackElement;
         }
 
-        return $feedbackModels;
+        return $feedbackElements;
     }
 
     /**
      * getFeedbackById
      *
      * @param mixed $feedbackId
-     * @return FeedbackModel
+     * @return FeedbackElement
      */
-    public function getFeedbackById($feedbackId): FeedbackModel
+    public function getFeedbackById($feedbackId): FeedbackElement
     {
         // get one record from DB related to entry
         $feedbackRecord = FeedbackRecord::find()
             ->where(['id' => $feedbackId])
             ->one();
 
-        $feedbackModel = new FeedbackModel();
-        $feedbackModel->setAttributes($feedbackRecord->getAttributes(), false);
+        $feedbackElement = new FeedbackElement();
+        $feedbackElement->setAttributes($feedbackRecord->getAttributes(), false);
 
-        return $feedbackModel;
+        return $feedbackElement;
     }
 
     /**
