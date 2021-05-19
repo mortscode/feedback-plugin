@@ -15,6 +15,7 @@ use mortscode\feedback\Feedback;
 
 use Craft;
 use mortscode\feedback\models\FeedbackModel;
+use yii\db\Exception;
 
 /**
  * Feedback Variable
@@ -118,5 +119,19 @@ class FeedbackVariable
     public function getPendingFeedback(string $type): int
     {
         return Feedback::$plugin->feedbackService->getPendingFeedback($type);
+    }
+
+    /**
+     * updateSelectedFeedback()
+     * Update array of feedback items' status
+     *
+     * @param array $feedbackItems
+     * @param string $status
+     * @return int|null
+     * @throws \yii\base\Exception
+     */
+    public function updateSelectedFeedback(array $feedbackItems, string $status): ?int
+    {
+        return Feedback::$plugin->feedbackService->updateSelectedFeedback($feedbackItems, $status);
     }
 }

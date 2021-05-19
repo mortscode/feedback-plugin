@@ -101,11 +101,11 @@ class FeedbackElementQuery extends ElementQuery
     protected function statusCondition(string $status)
     {
         switch ($status) {
-            case FeedbackElement::STATUS_APPROVED:
+            case FeedbackStatus::Approved:
                 return [FeedbackStatus::Approved => true];
-            case FeedbackElement::STATUS_PENDING:
+            case FeedbackStatus::Pending:
                 return [FeedbackStatus::Pending => true];
-            case FeedbackElement::STATUS_SPAM:
+            case FeedbackStatus::Spam:
                 return [FeedbackStatus::Spam => true];
             default:
                 // call the base method for `enabled` or `disabled`

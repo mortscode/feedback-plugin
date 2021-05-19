@@ -22,4 +22,14 @@
  */
 return [
     'Feedback plugin loaded' => 'Feedback plugin loaded',
+    'Edit feedback' => 'Edit feedback',
+    'Are you sure you want to delete the selected Feedback?' => 'Are you sure you want to delete the selected Feedback?',
+    'Feedback deleted.' => 'Feedback deleted.',
+    'Feedback restored.' => 'Feedback restored.',
+    'Some Feedback restored.' => 'Some Feedback restored.',
+    'Feedback not restored.' => 'Feedback not restored.',
+    'Update Status' => 'Update Status',
+    'Set Status' => 'Set Status',
+    'Status Updated' => 'Status Updated',
+    'Failed to update status' => 'Failed to update status',
 ];

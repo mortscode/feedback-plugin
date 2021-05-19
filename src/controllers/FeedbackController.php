@@ -12,16 +12,17 @@ namespace mortscode\feedback\controllers;
 
 use craft\elements\Entry;
 use craft\errors\MissingComponentException;
+use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
-use mortscode\feedback\models\FeedbackModel;
 use mortscode\feedback\records\FeedbackRecord;
 
 use Craft;
 use craft\web\Controller;
+use yii\base\ExitException;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
@@ -204,7 +205,7 @@ class FeedbackController extends Controller
      * @return void|Response
      * @throws BadRequestHttpException
      * @throws MissingComponentException
-     * @throws \Exception
+     * @throws Exception
      */
     public function actionImportXml()
     {
@@ -330,14 +331,15 @@ class FeedbackController extends Controller
 
         return $result;
     }
-        
+
     /**
      * _convertThreads
      *
      * Prepare the Disqus threads to be imported
      *
-     * @param  mixed $threads
+     * @param mixed $threads
      * @return array
+     * @throws ExitException
      */
     private function _convertThreads(array $threads): array
     {
@@ -446,8 +448,9 @@ class FeedbackController extends Controller
                         }
                     }
                 }
-                
+
                 // get form fields
+                $newFeedback->dateCreated = $comment['created'];
                 $newFeedback->entryId = $entry->id ?? '';
                 $newFeedback->name = $thread->name ?? $comment['name'];
                 $newFeedback->email = $thread->email ?? '';
@@ -490,7 +493,6 @@ class FeedbackController extends Controller
      * _populateFeedbackElement
      *
      * @param FeedbackElement $feedback
-     * @throws BadRequestHttpException
      */
     private function _populateFeedbackElement(FeedbackElement $feedback): void
     {
@@ -502,9 +504,9 @@ class FeedbackController extends Controller
 
         // get form fields
         $feedback->rating = $request->getParam('rating', $feedback->rating);
-        $feedback->entryId = $request->getRequiredParam('entryId', $feedback->entryId);
-        $feedback->name = $request->getRequiredParam('name', $feedback->name);
-        $feedback->email = $request->getRequiredParam('email', $feedback->email);
+        $feedback->entryId = $request->getParam('entryId', $feedback->entryId);
+        $feedback->name = $request->getParam('name', $feedback->name);
+        $feedback->email = $request->getParam('email', $feedback->email);
         $feedback->comment = $request->getParam('comment', $feedback->comment);
         $feedback->feedbackType = $request->getParam('feedbackType', $feedback->feedbackType);
         $feedback->feedbackStatus = FeedbackStatus::Pending;
