@@ -236,9 +236,48 @@ class FeedbackService extends Component
      */
     public function getPendingFeedback(string $type): int
     {
-        return FeedbackRecord::find()
+        return FeedbackElement::find()
             ->where(['feedbackType' => $type, 'feedbackStatus' => FeedbackStatus::Pending])
             ->count();
     }
 
+    /**
+     * Update selected feedback statuses
+     *
+     * @param array $feedbackItems
+     * @param string $status
+     * @return bool
+     * @throws \yii\db\Exception
+     */
+    public function updateSelectedFeedback(array $feedbackItems, string $status): bool
+    {
+        foreach ($feedbackItems as $key => $feedback) {
+            if ($feedback) {
+                $this->_updateFeedbackStatus($feedback->id, $status);
+            } else {
+                Craft::error("Can't update status");
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * updateFeedbackStatus
+     *
+     * @param int $elementId
+     * @param string $status
+     * @return void
+     * @throws \yii\db\Exception
+     */
+    private function _updateFeedbackStatus(int $elementId, string $status): void
+    {
+        if (!$elementId) {
+            return;
+        }
+
+        Craft::$app->getDb()->createCommand()
+            ->update('{{%feedback_record}}', ['feedbackStatus' => $status], ['id' => $elementId])
+            ->execute();
+    }
 }

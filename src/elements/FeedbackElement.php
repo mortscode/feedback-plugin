@@ -4,14 +4,18 @@ namespace mortscode\feedback\elements;
 
 use Craft;
 use craft\base\Element;
-use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
+use craft\elements\actions\Restore;
+use craft\elements\actions\Delete;
 use craft\helpers\UrlHelper;
+use DateTime;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
 use mortscode\feedback\records\FeedbackRecord;
+use mortscode\feedback\elements\actions\SetStatus;
+use yii\base\InvalidConfigException;
 use yii\db\Exception;
 
 /**
@@ -57,7 +61,7 @@ class FeedbackElement extends Element
     {
         return [
             FeedbackStatus::Approved => ['label' => ucfirst(FeedbackStatus::Approved), 'color' => 'green'],
-            FeedbackStatus::Pending => ['label' => ucfirst(FeedbackStatus::Pending), 'color' => 'yellow'],
+            FeedbackStatus::Pending => ['label' => ucfirst(FeedbackStatus::Pending), 'color' => 'orange'],
             FeedbackStatus::Spam => ['label' => ucfirst(FeedbackStatus::Spam), 'color' => 'red'],
         ];
     }
@@ -65,12 +69,12 @@ class FeedbackElement extends Element
     public function getStatus(): string
     {
 
-//        if ($this->feedbackStatus == FeedbackStatus::Approved) {
-//            return FeedbackStatus::Approved;
-//        }
-//        if ($this->feedbackStatus == FeedbackStatus::Spam) {
-//            return FeedbackStatus::Spam;
-//        }
+        if ($this->feedbackStatus == FeedbackStatus::Approved) {
+            return FeedbackStatus::Approved;
+        }
+        if ($this->feedbackStatus == FeedbackStatus::Spam) {
+            return FeedbackStatus::Spam;
+        }
 
         return FeedbackStatus::Pending;
     }
@@ -87,12 +91,12 @@ class FeedbackElement extends Element
     public $entryId;
 
     /**
-     * @var \DateTime|null Date created
+     * @var DateTime|null Date created
      */
     public $dateCreated;
 
     /**
-     * @var \DateTime|null Date updated
+     * @var DateTime|null Date updated
      */
     public $dateUpdated;
 
@@ -176,10 +180,24 @@ class FeedbackElement extends Element
         return UrlHelper::cpUrl("feedback/entries/$this->entryId/$this->id");
     }
 
+    /**
+     * @param string $type
+     * @return int|null
+     */
+    public function getPendingCount(string $type): ?int
+    {
+        $pendingCount = Feedback::$plugin->feedbackService->getPendingFeedback($type);
+        return $pendingCount > 0 ? $pendingCount : null;
+    }
+
     protected static function defineSources(string $context = null): array
     {
-        function _getPending($feedbackType) {
-            return Feedback::$plugin->feedbackService->getPendingFeedback($feedbackType);
+        function _getPending($feedbackType): ?int
+        {
+            $pendingNum = Feedback::$plugin->feedbackService->getPendingFeedback($feedbackType);
+
+            // return number of pending feedback items unless 0
+            return $pendingNum > 0 ? $pendingNum : null;
         }
 
         return [
@@ -191,7 +209,7 @@ class FeedbackElement extends Element
             [
                 'key' => 'reviews',
                 'label' => 'Reviews',
-                'badgeCount' => _getPending(FeedbackType::Review),
+                'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Review),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Review,
                 ]
@@ -199,7 +217,7 @@ class FeedbackElement extends Element
             [
                 'key' => 'questions',
                 'label' => 'Questions',
-                'badgeCount' => _getPending(FeedbackType::Question),
+                'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Question),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Question,
                 ]
@@ -217,6 +235,7 @@ class FeedbackElement extends Element
         return [
             'name' => 'Name',
             'rating' => 'Rating',
+            'recipe' => 'Recipe',
             'dateCreated' => 'Created',
             'dateUpdated' => 'Updated',
         ];
@@ -230,9 +249,29 @@ class FeedbackElement extends Element
     {
         return [
             'name',
-            'rating',
             'dateCreated',
         ];
+    }
+
+    /**
+     * @param string $attribute
+     * @return string
+     * @throws InvalidConfigException
+     */
+    protected function tableAttributeHtml(string $attribute): string
+    {
+        switch ($attribute) {
+            case 'recipe':
+                $entry = Craft::$app->entries->getEntryById($this->entryId);
+                $vars = [
+                  'entry' => $entry,
+                ];
+                return $entry ? Craft::$app->getView()->renderTemplate('feedback/_elements/table-recipe', $vars) : $this->entryId;
+            case 'currency':
+                return strtoupper($this->currency);
+        }
+
+        return parent::tableAttributeHtml($attribute);
     }
 
     /**
@@ -241,8 +280,9 @@ class FeedbackElement extends Element
     protected static function defineSortOptions(): array
     {
         return [
-            'name' => Craft::t('app', 'Name'),
-            'rating' => Craft::t('app', 'Rating'),
+            'feedbackStatus' => Craft::t('feedback', 'Status'),
+            'name' => Craft::t('feedback', 'Name'),
+            'rating' => Craft::t('feedback', 'Rating'),
             [
                 'label' => Craft::t('app', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
@@ -267,13 +307,6 @@ class FeedbackElement extends Element
     public static function find(): ElementQueryInterface
     {
         return new FeedbackElementQuery(static::class);
-    }
-
-    protected static function defineActions(string $source = null): array
-    {
-        return [
-            SetStatus::class,
-        ];
     }
 
     // VALIDATION RULES
@@ -301,6 +334,38 @@ class FeedbackElement extends Element
         ];
 
         return $rules;
+    }
+
+    // ACTIONS
+    // ------------------------------------
+    /**
+     * @inheritdoc
+     */
+    protected static function defineActions(string $source = null): array
+    {
+        $actions = [];
+
+        $elementsService = Craft::$app->getElements();
+
+        // Delete
+        $actions[] = $elementsService->createAction([
+            'type' => Delete::class,
+            'confirmationMessage' => Craft::t('feedback', 'Are you sure you want to delete the selected Feedback?'),
+            'successMessage' => Craft::t('feedback', 'Feedback deleted.'),
+        ]);
+
+        // Restore
+        $actions[] = $elementsService->createAction([
+            'type' => Restore::class,
+            'successMessage' => Craft::t('feedback', 'Feedback restored.'),
+            'partialSuccessMessage' => Craft::t('feedback', 'Some Feedback restored.'),
+            'failMessage' => Craft::t('feedback', 'Feedback not restored.'),
+        ]);
+
+        // Set Status
+        $actions[] = SetStatus::class;
+
+        return $actions;
     }
 
     // EVENTS
@@ -336,6 +401,8 @@ class FeedbackElement extends Element
             $feedbackRecord->userAgent = $this->userAgent;
             $feedbackRecord->feedbackType = $this->feedbackType;
             $feedbackRecord->feedbackStatus = $this->feedbackStatus;
+            $feedbackRecord->dateCreated = $this->dateCreated;
+
             $feedbackRecord->save(false);
         }
 
