@@ -11,6 +11,10 @@
 namespace mortscode\feedback;
 
 
+use craft\base\Model;
+use craft\events\RegisterCpNavItemsEvent;
+use craft\helpers\ArrayHelper;
+use craft\web\twig\variables\Cp;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\services\FeedbackService;
 use mortscode\feedback\variables\FeedbackVariable;
@@ -50,6 +54,7 @@ use yii\base\Event;
  * @since     1.0.0
  *
  * @property  FeedbackService $feedbackService
+ * @property-read array $cpNavItem
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
@@ -104,15 +109,11 @@ class Feedback extends Plugin
      * you do not need to load it in your init() method.
      *
      */
+
     public function init(): void
     {
         parent::init();
         self::$plugin = $this;
-
-        // Register services as components
-//        $this->setComponents([
-//            'feedback' => FeedbackService::class
-//        ]);
 
         // Register our site routes
         Event::on(
@@ -206,10 +207,19 @@ class Feedback extends Plugin
             Craft::t(
                 'feedback',
                 '{name} plugin loaded',
-                ['name' => $this->name]
+                [
+                    'name' => $this->name,
+                ]
             ),
             __METHOD__
         );
+    }
+
+    public function getCpNavItem(): array
+    {
+        $navItem = parent::getCpNavItem();
+        $navItem['badgeCount'] = self::getInstance()->feedbackService->getTotalPendingFeedback();
+        return $navItem;
     }
 
     // Protected Methods
@@ -218,7 +228,7 @@ class Feedback extends Plugin
     /**
      * Creates and returns the model used to store the plugin’s settings.
      *
-     * @return \craft\base\Model|null
+     * @return Model|null
      */
     protected function createSettingsModel()
     {

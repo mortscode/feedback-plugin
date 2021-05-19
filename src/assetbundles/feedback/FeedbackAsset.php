@@ -40,7 +40,7 @@ class FeedbackAsset extends AssetBundle
     /**
      * Initializes the bundle.
      */
-    public function init()
+    public function init(): void
     {
         // define the path that your publishable resources live
         $this->sourcePath = "@mortscode/feedback/assetbundles/feedback/dist";

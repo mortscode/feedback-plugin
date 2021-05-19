@@ -102,11 +102,11 @@ class FeedbackElementQuery extends ElementQuery
     {
         switch ($status) {
             case FeedbackStatus::Approved:
-                return [FeedbackStatus::Approved => true];
+                return ['feedbackStatus' => FeedbackStatus::Approved];
             case FeedbackStatus::Pending:
-                return [FeedbackStatus::Pending => true];
+                return ['feedbackStatus' => FeedbackStatus::Pending];
             case FeedbackStatus::Spam:
-                return [FeedbackStatus::Spam => true];
+                return ['feedbackStatus' => FeedbackStatus::Spam];
             default:
                 // call the base method for `enabled` or `disabled`
                 return parent::statusCondition($status);

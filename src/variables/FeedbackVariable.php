@@ -111,14 +111,24 @@ class FeedbackVariable
     }
 
     /**
-     * getPendingFeedback
+     * getPendingFeedbackByType
      *
      * @param string $type
      * @return int
      */
-    public function getPendingFeedback(string $type): int
+    public function getPendingFeedbackByType(string $type): int
     {
-        return Feedback::$plugin->feedbackService->getPendingFeedback($type);
+        return Feedback::$plugin->feedbackService->getPendingFeedbackByType($type);
+    }
+
+    /**
+     * getTotalPendingFeedback
+     *
+     * @return int
+     */
+    public function getTotalPendingFeedback(): int
+    {
+        return Feedback::$plugin->feedbackService->getTotalPendingFeedback();
     }
 
     /**

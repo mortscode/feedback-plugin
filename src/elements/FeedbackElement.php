@@ -15,6 +15,9 @@ use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\elements\actions\SetStatus;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
 
@@ -61,7 +64,7 @@ class FeedbackElement extends Element
     {
         return [
             FeedbackStatus::Approved => ['label' => ucfirst(FeedbackStatus::Approved), 'color' => 'green'],
-            FeedbackStatus::Pending => ['label' => ucfirst(FeedbackStatus::Pending), 'color' => 'orange'],
+            FeedbackStatus::Pending => ['label' => ucfirst(FeedbackStatus::Pending), 'color' => 'yellow'],
             FeedbackStatus::Spam => ['label' => ucfirst(FeedbackStatus::Spam), 'color' => 'red'],
         ];
     }
@@ -186,20 +189,12 @@ class FeedbackElement extends Element
      */
     public function getPendingCount(string $type): ?int
     {
-        $pendingCount = Feedback::$plugin->feedbackService->getPendingFeedback($type);
+        $pendingCount = Feedback::$plugin->feedbackService->getPendingFeedbackByType($type);
         return $pendingCount > 0 ? $pendingCount : null;
     }
 
     protected static function defineSources(string $context = null): array
     {
-        function _getPending($feedbackType): ?int
-        {
-            $pendingNum = Feedback::$plugin->feedbackService->getPendingFeedback($feedbackType);
-
-            // return number of pending feedback items unless 0
-            return $pendingNum > 0 ? $pendingNum : null;
-        }
-
         return [
             [
                 'key' => '*',
@@ -266,7 +261,11 @@ class FeedbackElement extends Element
                 $vars = [
                   'entry' => $entry,
                 ];
-                return $entry ? Craft::$app->getView()->renderTemplate('feedback/_elements/table-recipe', $vars) : $this->entryId;
+                try {
+                    return Craft::$app->getView()->renderTemplate('feedback/_elements/table-recipe', $vars);
+                } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
+                    return $this->entryId;
+                }
             case 'currency':
                 return strtoupper($this->currency);
         }
@@ -280,7 +279,6 @@ class FeedbackElement extends Element
     protected static function defineSortOptions(): array
     {
         return [
-            'feedbackStatus' => Craft::t('feedback', 'Status'),
             'name' => Craft::t('feedback', 'Name'),
             'rating' => Craft::t('feedback', 'Rating'),
             [

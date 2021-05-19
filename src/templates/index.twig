@@ -1,6 +1,8 @@
 {% extends '_layouts/elementindex' %}
 {% set elementType = 'mortscode\\feedback\\elements\\FeedbackElement' %}
 
+{% do view.registerAssetBundle("mortscode\\feedback\\assetbundles\\feedback\\FeedbackAsset") %}
+
 {% set crumbs = [
     { label: 'Feedback', url: url('feedback') }
 ] %}
