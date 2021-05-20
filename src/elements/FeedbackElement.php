@@ -104,11 +104,6 @@ class FeedbackElement extends Element
     public $entryId;
 
     /**
-     * @var string Entry Title
-     */
-    public $entryTitle;
-
-    /**
      * @var DateTime|null Date created
      */
     public $dateCreated;
