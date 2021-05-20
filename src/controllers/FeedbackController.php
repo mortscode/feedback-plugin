@@ -18,6 +18,7 @@ use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
+use mortscode\feedback\helpers\RequestHelpers;
 use mortscode\feedback\records\FeedbackRecord;
 
 use Craft;
@@ -146,7 +147,7 @@ class FeedbackController extends Controller
         }
 
         // Ok, definitely valid + saved!
-        $this->setSuccessFlash(Craft::t('app', 'Feedback saved.'));
+        $this->setSuccessFlash(Craft::t('feedback', 'Feedback saved'));
         return $this->redirectToPostedUrl($feedback);
     }
 
@@ -484,9 +485,7 @@ class FeedbackController extends Controller
     private function _getFeedbackElementModel(): FeedbackElement
     {
         // TODO Figure out if we're creating or updating
-        $feedback = new FeedbackElement();
-
-        return $feedback;
+        return new FeedbackElement();
     }
 
     /**
@@ -509,7 +508,7 @@ class FeedbackController extends Controller
         $feedback->email = $request->getParam('email', $feedback->email);
         $feedback->comment = $request->getParam('comment', $feedback->comment);
         $feedback->feedbackType = $request->getParam('feedbackType', $feedback->feedbackType);
-        $feedback->feedbackStatus = FeedbackStatus::Pending;
+        $feedback->feedbackStatus = RequestHelpers::isCpRequest() ? FeedbackStatus::Approved : FeedbackStatus::Pending;
     }
 
     /**
@@ -522,6 +521,12 @@ class FeedbackController extends Controller
      */
     private function _verifyRecaptcha(): bool
     {
+        $request = Craft::$app->getRequest();
+
+        if (RequestHelpers::isCpRequest()) {
+            return true;
+        }
+
         $settings = Feedback::$plugin->getSettings();
 
         // if user has entered recaptcha keys, verify request
@@ -529,7 +534,6 @@ class FeedbackController extends Controller
 
             $recaptchaSecret = Craft::parseEnv($settings->recaptchaSecretKey);
 
-            $request = Craft::$app->getRequest();
             $recaptchaToken = $request->getParam('token');
 
             $url = 'https://www.google.com/recaptcha/api/siteverify';

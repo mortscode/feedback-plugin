@@ -21,8 +21,8 @@
  * @since     1.0.0
  */
 return [
-    'Feedback plugin loaded' => 'Feedback plugin loaded',
     'Edit feedback' => 'Edit feedback',
+    'Feedback saved' => 'Feedback saved',
     'Are you sure you want to delete the selected Feedback?' => 'Are you sure you want to delete the selected Feedback?',
     'Feedback deleted.' => 'Feedback deleted.',
     'Feedback restored.' => 'Feedback restored.',
