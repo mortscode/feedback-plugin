@@ -36,20 +36,6 @@ class Settings extends Model
     // =========================================================================
 
     /**
-     * default status for new reviews
-     *
-     * @var string
-     */
-    public $defaultStatus = FeedbackStatus::Pending;
-
-    /**
-     * Title heading for the entry column in the CP
-     *
-     * @var string
-     */
-    public $mainColumnTitle = "Entry";
-
-    /**
      * ReCapcha Site Key
      *
      * @var string

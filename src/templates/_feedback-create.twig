@@ -1,0 +1,78 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set fullPageForm = true %}
+
+{% set entry = craft.entries.id(entryId).one() %}
+
+{% set title = "Add " ~ feedbackType|capitalize ~ " | " ~ entry.title %}
+
+{% set crumbs = [
+    { label: entry.title, url: entry.cpEditUrl }
+] %}
+
+{% block content %}
+	<input type="hidden" name="action" value="feedback/feedback/save">
+	{{ hiddenInput('entryId', entry.id) }}
+	{{ hiddenInput('feedbackType', feedbackType) }}
+	{{ hiddenInput('token', "", {class: 'js-token-input'}) }}
+	{{ redirectInput(entry.cpEditUrl) }}
+
+	<div id="fields">
+		<div class="flex-fields">
+
+			<div class="field width-50">
+				<div class="heading">
+					<label id="name-label" for="name">Name</label>
+				</div>
+				{{ forms.text({
+					title: 'Name',
+					id: 'name',
+					name: 'name',
+					autofocus: true,
+					errors: comment.getErrors('name') ?? '',
+				}) }}
+			</div>
+
+			{% if feedbackType == 'review' %}
+			<div class="field width-50">
+					{{ forms.selectField({
+						label: 'Rating',
+						id: 'rating',
+						name: 'rating',
+						options: [
+							{'value': 5, 'label': '5'},
+							{'value': 4, 'label': '4'},
+							{'value': 3, 'label': '3'},
+							{'value': 2, 'label': '2'},
+							{'value': 1, 'label': '1'},
+						],
+						value: 5,
+					}) }}
+			</div>
+			{% endif %}
+
+			<div class="field width-50">
+				<div class="heading">
+					<label id="email-label" for="email">Email</label>
+				</div>
+				{{ forms.text({
+					first: true,
+					title: 'Email',
+					id: 'email',
+					name: 'email',
+					autofocus: true,
+					errors: comment.getErrors('email') ?? '',
+				}) }}
+			</div>
+
+			{{ forms.textAreaField({
+				label: 'Comment',
+				id: 'comment',
+				name: 'comment',
+				rows: '5',
+				errors: comment.getErrors('comment') ?? '',
+			}) }}
+		</div>
+	</div>
+{% endblock %}

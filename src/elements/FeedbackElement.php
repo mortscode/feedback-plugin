@@ -104,6 +104,11 @@ class FeedbackElement extends Element
     public $entryId;
 
     /**
+     * @var string Entry Title
+     */
+    public $entryTitle;
+
+    /**
      * @var DateTime|null Date created
      */
     public $dateCreated;
@@ -323,7 +328,7 @@ class FeedbackElement extends Element
      */
     protected static function defineSearchableAttributes(): array
     {
-        return ['name', 'comment', 'email'];
+        return ['name', 'comment', 'email', 'recipe'];
     }
 
     /**
@@ -417,6 +422,7 @@ class FeedbackElement extends Element
             }
 
             $feedbackRecord->entryId = $this->entryId;
+            $feedbackRecord->entryTitle = $this->entryId;
             $feedbackRecord->name = $this->name;
             $feedbackRecord->email = $this->email;
             $feedbackRecord->rating = $this->rating ?? null;

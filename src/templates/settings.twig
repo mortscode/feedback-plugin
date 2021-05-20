@@ -15,18 +15,10 @@
 
 {% import "_includes/forms" as forms %}
 
+{# Register asset bundle #}
 {% do view.registerAssetBundle("mortscode\\feedback\\assetbundles\\feedback\\FeedbackAsset") %}
 
-{# Get all the status values available #}
-{% set statusList = craft.feedback.getStatusValues() %}
-{% set statusOptions = [] %}
-{% for label, value in statusList %}
-    {% set statusOptions = statusOptions|merge([
-        {'value': value, 'label': label}
-    ]) %}
-{% endfor %}
-
-{# Create array of all the available entry types#}
+{# Create array of all the available entry types #}
 {% set allEntryTypes = craft.app.sections.allSections %}
 {% set entryTypes = [] %}
 {% for entryType in allEntryTypes %}
@@ -34,31 +26,13 @@
 {% endfor %}
 
 
-{% set statusLabel = "<span class='status " ~ settings.defaultStatus ~ "'></span>Default Status" %}
-
-{{ forms.selectField({
-    label: statusLabel,
-    id: 'default-status',
-    name: 'defaultStatus',
-    options: statusOptions,
-    value: settings.defaultStatus,
-    first: true
-}) }}
-
-{{ forms.textField({
-    label: 'Main Column Title',
-    id: 'mainColumnTitle',
-    name: 'mainColumnTitle',
-    value: settings.mainColumnTitle,
-    size: 50
-}) }}
-
 {{ forms.checkboxSelectField({
     label: 'Feedback Sections',
     id: 'feedbackSections',
     name: 'feedbackSections',
     options: entryTypes,
     values: settings.feedbackSections|default(null),
+    first: true
 }) }}
 
 {{ forms.autosuggestField({

@@ -16,6 +16,7 @@ use craft\events\RegisterCpNavItemsEvent;
 use craft\helpers\ArrayHelper;
 use craft\web\twig\variables\Cp;
 use mortscode\feedback\elements\FeedbackElement;
+use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\services\FeedbackService;
 use mortscode\feedback\variables\FeedbackVariable;
 use mortscode\feedback\models\Settings;
@@ -115,6 +116,29 @@ class Feedback extends Plugin
         parent::init();
         self::$plugin = $this;
 
+        Craft::$app->getView()->hook('cp.entries.edit.details', function(array $context) {
+
+            $entry = $context['entry'];
+
+            $settings = self::$plugin->getSettings();
+
+            $selectedSections = [];
+            foreach ($settings->feedbackSections as $section) {
+                $selectedSections[] = $section;
+            }
+
+            $sectionIsSelected = in_array((string)$entry->section->handle, $selectedSections, true);
+
+            if ($sectionIsSelected) {
+
+                $reviewUrl = '/admin/feedback/create/' . FeedbackType::Review . '/' . $entry->id;
+                $questionUrl = '/admin/feedback/create/' . FeedbackType::Question . '/' . $entry->id;
+
+                return '<div class="flex"><a href="' . $reviewUrl . '" class="btn secondary">Add Review</a><a href="' . $questionUrl . '" class="btn secondary">Add Question</a></div>';
+            }
+
+        });
+
         // Register our site routes
         Event::on(
             UrlManager::class,
@@ -129,8 +153,8 @@ class Feedback extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-
                 $event->rules['feedback/entries/<entryId:\d+>/<feedbackId:\d+>'] = ['template' => 'feedback/_feedback-detail'];
+                $event->rules['feedback/create/<feedbackType:{slug}>/<entryId:\d+>'] = ['template' => 'feedback/_feedback-create'];
             }
         );
 
