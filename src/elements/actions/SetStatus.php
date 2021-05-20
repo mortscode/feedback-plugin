@@ -4,8 +4,6 @@
  *
  * Questions & Answers and Reviews & Ratings
  *
- * @link      https://owl-design.net
- * @copyright Copyright (c) 2018 Vadim Goncharov
  */
 
 namespace mortscode\feedback\elements\actions;

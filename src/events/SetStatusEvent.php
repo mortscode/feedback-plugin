@@ -11,5 +11,4 @@ class SetStatusEvent extends Event
 
     public $response;
     public $status;
-    public $type;
 }

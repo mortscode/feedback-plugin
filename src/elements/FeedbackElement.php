@@ -55,11 +55,18 @@ class FeedbackElement extends Element
     }
 
     // Feedback Status Options
+
+    /**
+     * @return bool
+     */
     public static function hasStatuses(): bool
     {
         return true;
     }
 
+    /**
+     * @return array[]
+     */
     public static function statuses(): array
     {
         return [
@@ -69,6 +76,9 @@ class FeedbackElement extends Element
         ];
     }
 
+    /**
+     * @return string
+     */
     public function getStatus(): string
     {
 
@@ -173,11 +183,17 @@ class FeedbackElement extends Element
      */
     public $isImport = false;
 
+    /**
+     * @return string|null
+     */
     protected function uiLabel(): ?string
     {
         return $this->name;
     }
 
+    /**
+     * @return string
+     */
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl("feedback/entries/$this->entryId/$this->id");
@@ -193,6 +209,10 @@ class FeedbackElement extends Element
         return $pendingCount > 0 ? $pendingCount : null;
     }
 
+    /**
+     * @param string|null $context
+     * @return array[]
+     */
     protected static function defineSources(string $context = null): array
     {
         return [
@@ -297,11 +317,18 @@ class FeedbackElement extends Element
     }
 
     // SEARCHABLE DATA
+
+    /**
+     * @return string[]
+     */
     protected static function defineSearchableAttributes(): array
     {
         return ['name', 'comment', 'email'];
     }
 
+    /**
+     * @return ElementQueryInterface
+     */
     public static function find(): ElementQueryInterface
     {
         return new FeedbackElementQuery(static::class);
