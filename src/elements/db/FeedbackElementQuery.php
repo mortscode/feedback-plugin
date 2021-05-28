@@ -4,7 +4,6 @@ namespace mortscode\feedback\elements\db;
 
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
-use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackStatus;
 
 class FeedbackElementQuery extends ElementQuery

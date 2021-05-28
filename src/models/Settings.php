@@ -78,8 +78,6 @@ class Settings extends Model
      */
     public function rules(): array
     {
-        return [
-            ['defaultStatus', 'string'],
-        ];
+        return [];
     }
 }

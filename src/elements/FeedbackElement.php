@@ -4,9 +4,12 @@ namespace mortscode\feedback\elements;
 
 use Craft;
 use craft\base\Element;
+use craft\db\Query;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\actions\Restore;
 use craft\elements\actions\Delete;
+use craft\elements\Entry;
+use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use DateTime;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
@@ -25,6 +28,9 @@ use yii\db\Exception;
  * Class FeedbackElement
  *
  * @package mortscode\feedback\elements
+ *
+ * @property-read Entry $entry
+ * @property-read string $entryTitle
  */
 class FeedbackElement extends Element
 {
@@ -277,17 +283,15 @@ class FeedbackElement extends Element
     {
         switch ($attribute) {
             case 'recipe':
-                $entry = Craft::$app->entries->getEntryById($this->entryId);
                 $vars = [
-                  'entry' => $entry,
+                  'entryTitle' => $this->getEntry()->title,
+                  'entryUrl' => $this->getEntry()->url,
                 ];
                 try {
                     return Craft::$app->getView()->renderTemplate('feedback/_elements/table-recipe', $vars);
                 } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
                     return $this->entryId;
                 }
-            case 'currency':
-                return strtoupper($this->currency);
         }
 
         return parent::tableAttributeHtml($attribute);
@@ -323,7 +327,7 @@ class FeedbackElement extends Element
      */
     protected static function defineSearchableAttributes(): array
     {
-        return ['name', 'comment', 'email', 'recipe'];
+        return ['name', 'comment', 'email', 'entryTitle'];
     }
 
     /**
@@ -332,6 +336,22 @@ class FeedbackElement extends Element
     public static function find(): ElementQueryInterface
     {
         return new FeedbackElementQuery(static::class);
+    }
+
+    /**
+     * @return Entry
+     */
+    public function getEntry(): Entry
+    {
+        return Craft::$app->entries->getEntryById($this->entryId);
+    }
+
+    /**
+     * @return string
+     */
+    public function getEntryTitle(): string
+    {
+        return $this->getEntry()->title;
     }
 
     // VALIDATION RULES
@@ -393,6 +413,30 @@ class FeedbackElement extends Element
         return $actions;
     }
 
+    // EAGER LOADING
+    // ------------------------------------
+
+//    public static function eagerLoadingMap(array $sourceElements, string $handle)
+//    {
+//        if ($handle === 'entryTitle') {
+//            // get the source element IDs
+//            $sourceElementIds = ArrayHelper::getColumn($sourceElements, 'id');
+//
+//            $map = (new Query())
+//                ->select(['id as source', 'title as target'])
+//                ->from(['{{%entries}}'])
+//                ->where(['and', ['id' => $sourceElementIds]])
+//                ->all();
+//
+//            return [
+//                'elementType' => __CLASS__,
+//                'map' => $map
+//            ];
+//        }
+//
+//        return parent::eagerLoadingMap($sourceElements, $handle);
+//    }
+
     // EVENTS
     // ------------------------------------
     /**
@@ -417,7 +461,6 @@ class FeedbackElement extends Element
             }
 
             $feedbackRecord->entryId = $this->entryId;
-            $feedbackRecord->entryTitle = $this->entryId;
             $feedbackRecord->name = $this->name;
             $feedbackRecord->email = $this->email;
             $feedbackRecord->rating = $this->rating ?? null;
