@@ -21,9 +21,6 @@
             "homepage": "mortscode.com"
         }
     ],
-    "require": {
-        "craftcms/cms": "^3.0.0"
-    },
     "require-dev": {
       "craftcms/cms": "^3.2.0",
       "codeception/codeception": "^3.0",
