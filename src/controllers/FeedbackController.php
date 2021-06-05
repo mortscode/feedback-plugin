@@ -15,9 +15,11 @@ use craft\errors\MissingComponentException;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use mortscode\feedback\elements\FeedbackElement;
+use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
+use mortscode\feedback\helpers\EmailHelpers;
 use mortscode\feedback\helpers\RequestHelpers;
 use mortscode\feedback\records\FeedbackRecord;
 
@@ -74,6 +76,7 @@ class FeedbackController extends Controller
      * @return Response|null
      * @throws BadRequestHttpException|MissingComponentException
      * @throws GuzzleException
+     * @throws \yii\base\InvalidConfigException
      */
     public function actionSave(): ?Response
     {
@@ -146,6 +149,20 @@ class FeedbackController extends Controller
             ]);
         }
 
+        // Send email to user if request is from frontend (not CP)
+        if (!RequestHelpers::isCpRequest()) {
+            $emailFeedback = [
+                'name' => $feedback->name,
+                'email' => $feedback->email,
+                'comment' => $feedback->comment,
+                'feedbackType' => $feedback->feedbackType,
+                'entryId' => $feedback->entryId,
+                'rating' => $feedback->rating,
+            ];
+
+            EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_NEW_FEEDBACK, $emailFeedback);
+        }
+
         // Ok, definitely valid + saved!
         $this->setSuccessFlash(Craft::t('feedback', 'Feedback saved'));
         return $this->redirectToPostedUrl($feedback);
@@ -159,6 +176,7 @@ class FeedbackController extends Controller
      *
      * @return Response
      * @throws BadRequestHttpException|MissingComponentException
+     * @throws \yii\base\InvalidConfigException
      */
     public function actionUpdate(): Response
     {
@@ -166,13 +184,40 @@ class FeedbackController extends Controller
         
         $request = Craft::$app->getRequest();
         $feedbackId = $request->getRequiredParam('feedbackId');
+        $requestResponse = Craft::$app->getRequest()->getParam('response');
+        $requestStatus = Craft::$app->getRequest()->getParam('status');
+
+        $feedback = FeedbackRecord::find()
+            ->where(['id' => $feedbackId])
+            ->one();
 
         $attributes[] = [
-            'response' => Craft::$app->getRequest()->getParam('response') ?? '',
-            'feedbackStatus' => Craft::$app->getRequest()->getParam('status'),
+            'response' => $requestResponse ?? '',
+            'feedbackStatus' => $requestStatus,
         ];
 
         Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes[0]);
+
+        $feedbackApproved = $requestStatus == FeedbackStatus::Approved;
+        $responseUpdated = $requestResponse !== $feedback['response'];
+        $approvedWithResponse = $feedback['feedbackStatus'] !== FeedbackStatus::Approved && $requestStatus == FeedbackStatus::Approved && $requestResponse;
+
+        // Send response email unless originally imported from disqus
+        if (!$feedback->isImport && $feedbackApproved) {
+            $emailData = [
+                'name' => $feedback['name'],
+                'email' => $feedback['email'],
+                'comment' => $feedback['comment'],
+                'response' => $requestResponse,
+                'feedbackType' => $feedback['feedbackType'],
+                'entryId' => $feedback['entryId'],
+                'rating' => $feedback['rating'],
+            ];
+
+            if ($responseUpdated || $approvedWithResponse) {
+                EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_FEEDBACK_RESPONSE, $emailData);
+            }
+        }
 
         Craft::$app->getSession()->setNotice('Feedback updated');
 

@@ -416,26 +416,26 @@ class FeedbackElement extends Element
     // EAGER LOADING
     // ------------------------------------
 
-//    public static function eagerLoadingMap(array $sourceElements, string $handle)
-//    {
-//        if ($handle === 'entryTitle') {
-//            // get the source element IDs
-//            $sourceElementIds = ArrayHelper::getColumn($sourceElements, 'id');
-//
-//            $map = (new Query())
-//                ->select(['id as source', 'title as target'])
-//                ->from(['{{%entries}}'])
-//                ->where(['and', ['id' => $sourceElementIds]])
-//                ->all();
-//
-//            return [
-//                'elementType' => __CLASS__,
-//                'map' => $map
-//            ];
-//        }
-//
-//        return parent::eagerLoadingMap($sourceElements, $handle);
-//    }
+    public static function eagerLoadingMap(array $sourceElements, string $handle)
+    {
+        if ($handle === 'entry') {
+            // get the source element IDs
+            $sourceElementIds = ArrayHelper::getColumn($sourceElements, 'id');
+
+            $map = (new Query())
+                ->select(['id as source', 'entryId as target'])
+                ->from(['{{%entries}}'])
+                ->where(['and', ['id' => $sourceElementIds]])
+                ->all();
+
+            return [
+                'elementType' => Entry::class,
+                'map' => $map
+            ];
+        }
+
+        return parent::eagerLoadingMap($sourceElements, $handle);
+    }
 
     // EVENTS
     // ------------------------------------

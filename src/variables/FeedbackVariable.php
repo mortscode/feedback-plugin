@@ -100,6 +100,16 @@ class FeedbackVariable
     }
 
     /**
+     * getReCaptchaKey
+     *
+     * @return string
+     */
+    public function getEmailHeaderUrl(): ?string
+    {
+        return Feedback::$plugin->feedbackService->getEmailHeaderUrl();
+    }
+
+    /**
      * getLocationByIp
      *
      * @param string $ip
