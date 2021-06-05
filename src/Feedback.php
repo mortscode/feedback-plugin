@@ -13,9 +13,13 @@ namespace mortscode\feedback;
 
 use craft\base\Model;
 use craft\events\RegisterCpNavItemsEvent;
+use craft\events\RegisterEmailMessagesEvent;
 use craft\helpers\ArrayHelper;
+use craft\models\SystemMessage;
+use craft\services\SystemMessages;
 use craft\web\twig\variables\Cp;
 use mortscode\feedback\elements\FeedbackElement;
+use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\services\FeedbackService;
 use mortscode\feedback\variables\FeedbackVariable;
@@ -38,6 +42,7 @@ use craft\events\RegisterUrlRulesEvent;
 use mortscode\feedback\fields\AverageRating;
 use mortscode\feedback\fields\TotalPending;
 use mortscode\feedback\fields\TotalRatings;
+use yii\base\BaseObject;
 use yii\base\Event;
 
 /**
@@ -198,16 +203,24 @@ class Feedback extends Plugin
             }
         );
 
-        // Do something after we're installed
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    // We were just installed
-                }
-            }
-        );
+        // Register system emails
+        Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, static function(RegisterEmailMessagesEvent $event) {
+            $event->messages[] = new SystemMessage([
+                'key' => FeedbackMessages::MESSAGE_NEW_FEEDBACK,
+                'heading' => 'Feedback received on The Modern Proper',
+                'subject' => 'Thanks for your feedback',
+                'body' => file_get_contents(__DIR__ . '/emails/new_feedback.md'),
+            ]);
+        });
+
+        Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, static function(RegisterEmailMessagesEvent $event) {
+            $event->messages[] = new SystemMessage([
+                'key' => FeedbackMessages::MESSAGE_FEEDBACK_RESPONSE,
+                'heading' => 'A Response from The Modern Proper',
+                'subject' => 'A Response to your feedback',
+                'body' => file_get_contents(__DIR__ . '/emails/feedback_response.md'),
+            ]);
+        });
 
 /**
  * Logging in Craft involves using one of the following methods:

@@ -25,7 +25,6 @@
     {% set entryTypes = entryTypes|merge([{label: entryType.name, value: entryType.handle}]) %}
 {% endfor %}
 
-
 {{ forms.checkboxSelectField({
     label: 'Feedback Sections',
     id: 'feedbackSections',
@@ -53,9 +52,19 @@
     size: 50
 }) }}
 
+{{ forms.autosuggestField({
+    label: 'Email Header Image Url',
+    instructions: 'The url to a header image for your feedback emails',
+    id: 'emailHeaderUrl',
+    name: 'emailHeaderUrl',
+    value: settings.emailHeaderUrl,
+    suggestEnvVars: true,
+}) }}
+
 <hr/>
 <h2>Disqus Import</h2>
 <p>Import an XML file from Disqus into existing entries. Reviews will only be imported into the "Reviewable Sections" selected above.</p>
+
 
 {{ forms.autosuggestField({
     label: 'Disqus User Handle',

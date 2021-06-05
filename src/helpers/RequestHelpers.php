@@ -8,7 +8,7 @@ use Craft;
 class RequestHelpers
 {
     /**
-     * Returns the average rating for a given entry ID
+     * Returns whether a request is from the CP
      *
      * @return bool
      */

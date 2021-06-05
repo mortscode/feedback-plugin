@@ -130,6 +130,7 @@ class Install extends Migration
                         FeedbackStatus::Spam,
                     ]),
                     'PRIMARY KEY(id)',
+                    'isImport' => $this->boolean(),
                 ]
             );
         }

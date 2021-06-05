@@ -212,6 +212,23 @@ class FeedbackService extends Component
     }
 
     /**
+     * getEmailHeaderUrl
+     *
+     * @return String | null
+     */
+    public function getEmailHeaderUrl(): ?string
+    {
+        $settings = Feedback::$plugin->getSettings();
+        $emailHeaderUrl = Craft::parseEnv($settings->emailHeaderUrl);
+
+        if ($emailHeaderUrl) {
+            return Craft::parseEnv($settings->emailHeaderUrl);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * getLocationByIp
      *
      * @param string $ip

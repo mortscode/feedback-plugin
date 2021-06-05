@@ -50,6 +50,13 @@ class Settings extends Model
     public $recaptchaSecretKey = null;
 
     /**
+     * Email Header Url
+     *
+     * @var string
+     */
+    public $emailHeaderUrl = null;
+
+    /**
      * Discuss User Handle
      *
      * @var string
