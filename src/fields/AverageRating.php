@@ -23,6 +23,6 @@ class AverageRating extends Field {
 
     protected function inputHtml($value, ElementInterface $element = null): string
     {
-        return $value ?? '';
+        return $value ?? 'none';
     }
 }

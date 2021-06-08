@@ -13,6 +13,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use DateTime;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
+use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
@@ -183,11 +184,11 @@ class FeedbackElement extends Element
     public $feedbackStatus = FeedbackStatus::Pending;
 
     /**
-     * isImport
+     * feedbackOrigin
      *
-     * @var bool
+     * @var string|null
      */
-    public $isImport = false;
+    public $feedbackOrigin = null;
 
     /**
      * @return string|null
@@ -366,7 +367,13 @@ class FeedbackElement extends Element
                 'required',
                 'message' => '{attribute} is required'
             ];
-        if (!$this->isImport) {
+        // IF ORIGIN IS FRONTEND OR CP, EMAIL IS REQUIRED
+        if (in_array($this->feedbackOrigin,
+            [
+                FeedbackOrigin::CONTROL_PANEL,
+                FeedbackOrigin::FRONTEND
+            ], false))
+        {
             $rules[] = ['email', 'required',
                     'message' => 'Email is required'
                 ];
@@ -470,11 +477,25 @@ class FeedbackElement extends Element
             $feedbackRecord->userAgent = $this->userAgent;
             $feedbackRecord->feedbackType = $this->feedbackType;
             $feedbackRecord->feedbackStatus = $this->feedbackStatus;
+            $feedbackRecord->feedbackOrigin = $this->feedbackOrigin;
             $feedbackRecord->dateCreated = $this->dateCreated;
 
             $feedbackRecord->save(false);
         }
 
         parent::afterSave($isNew);
+    }
+
+    /**
+     * afterDelete Event
+     *
+     * @inheritdoc
+     * @throws Exception if reasons
+     */
+    public function afterDelete(): void
+    {
+        Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
+
+        parent::afterDelete();
     }
 }

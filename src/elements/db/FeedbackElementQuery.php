@@ -13,6 +13,7 @@ class FeedbackElementQuery extends ElementQuery
     public $rating;
     public $feedbackType;
     public $feedbackStatus;
+    public $feedbackOrigin;
 
     public function entryId($value): FeedbackElementQuery
     {
@@ -44,6 +45,12 @@ class FeedbackElementQuery extends ElementQuery
         return $this;
     }
 
+    public function feedbackOrigin($value): FeedbackElementQuery
+    {
+        $this->feedbackOrigin = $value;
+        return $this;
+    }
+
     protected function beforePrepare(): bool
     {
         // join in the reviews table
@@ -56,6 +63,7 @@ class FeedbackElementQuery extends ElementQuery
             'feedback_record.rating',
             'feedback_record.feedbackType',
             'feedback_record.feedbackStatus',
+            'feedback_record.feedbackOrigin',
         ]);
 
         if ($this->entryId) {
@@ -90,6 +98,13 @@ class FeedbackElementQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam(
                 'feedback_record.feedbackStatus',
                 $this->feedbackStatus)
+            );
+        }
+
+        if ($this->feedbackOrigin) {
+            $this->subQuery->andWhere(Db::parseParam(
+                'feedback_record.feedbackOrigin',
+                $this->feedbackOrigin)
             );
         }
 
