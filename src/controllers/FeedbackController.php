@@ -16,6 +16,7 @@ use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackMessages;
+use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
@@ -146,11 +147,12 @@ class FeedbackController extends Controller
                 'comment' => $feedback->comment,
                 'feedbackType' => $feedback->feedbackType,
                 'feedbackStatus' => $feedback->feedbackStatus,
+                'feedbackOrigin' => $feedback->feedbackOrigin,
             ]);
         }
 
         // Send email to user if request is from frontend (not CP)
-        if (!RequestHelpers::isCpRequest()) {
+        if ($feedback->feedbackOrigin == FeedbackOrigin::FRONTEND) {
             $emailFeedback = [
                 'name' => $feedback->name,
                 'email' => $feedback->email,
@@ -160,8 +162,10 @@ class FeedbackController extends Controller
                 'rating' => $feedback->rating,
             ];
 
-            EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_NEW_FEEDBACK, $emailFeedback);
+            !EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_NEW_FEEDBACK, $emailFeedback);
         }
+
+        Feedback::$plugin->feedbackService->updateEntryRatings($feedback->entryId);
 
         // Ok, definitely valid + saved!
         $this->setSuccessFlash(Craft::t('feedback', 'Feedback saved'));
@@ -199,11 +203,13 @@ class FeedbackController extends Controller
         Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes[0]);
 
         $feedbackApproved = $requestStatus == FeedbackStatus::Approved;
+        $importedFeedback = $feedback['feedbackOrigin'] == FeedbackOrigin::IMPORT_DISQUS;
+        $feedbackHasEmail = $feedback['email'];
         $responseUpdated = $requestResponse !== $feedback['response'];
         $approvedWithResponse = $feedback['feedbackStatus'] !== FeedbackStatus::Approved && $requestStatus == FeedbackStatus::Approved && $requestResponse;
 
-        // Send response email unless originally imported from disqus
-        if (!$feedback->isImport && $feedbackApproved) {
+        // Send response email to frontend users
+        if (!$importedFeedback && $feedbackHasEmail && $feedbackApproved) {
             $emailData = [
                 'name' => $feedback['name'],
                 'email' => $feedback['email'],
@@ -214,33 +220,15 @@ class FeedbackController extends Controller
                 'rating' => $feedback['rating'],
             ];
 
+            // response has been updated since last save
+            // or
+            // response is newly approved and has a response
             if ($responseUpdated || $approvedWithResponse) {
                 EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_FEEDBACK_RESPONSE, $emailData);
             }
         }
 
         Craft::$app->getSession()->setNotice('Feedback updated');
-
-        return $this->redirect('feedback');
-    }
-
-    /**
-     * Action Delete
-     *
-     * Delete a feedback item using its $feedbackId
-     *
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws MissingComponentException
-     */
-    public function actionDelete(): Response
-    {
-        $request = Craft::$app->getRequest();
-        $feedbackId = $request->getRequiredParam('feedbackId');
-
-        Feedback::$plugin->feedbackService->deleteFeedbackById($feedbackId);
-
-        Craft::$app->getSession()->setNotice(Craft::t('feedback', 'Feedback deleted.'));
 
         return $this->redirect('feedback');
     }
@@ -503,7 +491,7 @@ class FeedbackController extends Controller
                 $newFeedback->comment = $comment['message'] ?? 'MESSAGE ERROR';
                 $newFeedback->response = $response[0] ?? null;
                 $newFeedback->feedbackType = FeedbackType::Question;
-                $newFeedback->isImport = true;
+                $newFeedback->feedbackOrigin = FeedbackOrigin::IMPORT_DISQUS;
 
                 // review is valid, let's create the record
                 $createReview = Feedback::$plugin->feedbackService->createFeedbackRecord($newFeedback);
@@ -554,6 +542,7 @@ class FeedbackController extends Controller
         $feedback->comment = $request->getParam('comment', $feedback->comment);
         $feedback->feedbackType = $request->getParam('feedbackType', $feedback->feedbackType);
         $feedback->feedbackStatus = RequestHelpers::isCpRequest() ? FeedbackStatus::Approved : FeedbackStatus::Pending;
+        $feedback->feedbackOrigin = RequestHelpers::isCpRequest() ? FeedbackOrigin::CONTROL_PANEL : FeedbackOrigin::FRONTEND;
     }
 
     /**

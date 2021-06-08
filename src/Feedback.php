@@ -12,12 +12,9 @@ namespace mortscode\feedback;
 
 
 use craft\base\Model;
-use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterEmailMessagesEvent;
-use craft\helpers\ArrayHelper;
 use craft\models\SystemMessage;
 use craft\services\SystemMessages;
-use craft\web\twig\variables\Cp;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackType;
@@ -42,7 +39,6 @@ use craft\events\RegisterUrlRulesEvent;
 use mortscode\feedback\fields\AverageRating;
 use mortscode\feedback\fields\TotalPending;
 use mortscode\feedback\fields\TotalRatings;
-use yii\base\BaseObject;
 use yii\base\Event;
 
 /**

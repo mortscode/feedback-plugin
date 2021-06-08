@@ -10,11 +10,13 @@
 
 namespace mortscode\feedback\variables;
 
+use craft\errors\ElementNotFoundException;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\Feedback;
 
 use Craft;
 use mortscode\feedback\models\FeedbackModel;
+use Throwable;
 use yii\db\Exception;
 
 /**

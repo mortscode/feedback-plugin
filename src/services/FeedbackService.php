@@ -17,7 +17,6 @@ use mortscode\feedback\Feedback;
 
 use Craft;
 use craft\base\Component;
-use mortscode\feedback\models\FeedbackModel;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\helpers\RatingsHelpers;
@@ -54,22 +53,22 @@ class FeedbackService extends Component
      */
     public function createFeedbackRecord(FeedbackElement $feedback): bool
     {
-//        craft::dd($feedback);
-//        $feedbackRecord = new FeedbackElement();
-//        $feedbackRecord->entryId = $feedback->entryId;
-//        $feedbackRecord->name = $feedback->name;
-//        $feedbackRecord->email = $feedback->email;
-//        $feedbackRecord->rating = $feedback->rating ?? null;
-//        $feedbackRecord->comment = $feedback->comment;
-//        $feedbackRecord->response = $feedback->response;
-//        $feedbackRecord->ipAddress = $feedback->ipAddress;
-//        $feedbackRecord->userAgent = $feedback->userAgent;
-//        $feedbackRecord->feedbackType = $feedback->feedbackType;
-//        $feedbackRecord->feedbackStatus = $feedback->feedbackStatus;
-
         // save record in DB
-        return Craft::$app->getElements()->saveElement($feedback);
-//        return $feedbackRecord->save();
+        $saveElement = Craft::$app->getElements()->saveElement($feedback);
+
+        if ($saveElement) {
+
+            $entry = Entry::findOne($feedback->entryId);
+
+            if ($entry) {
+                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($feedback->entryId));
+                Craft::$app->elements->saveElement($entry, false, true, false);
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -96,13 +95,7 @@ class FeedbackService extends Component
         // update the ratings fields
         if ($recordSaved) {
             $entryId = $feedbackRecord->entryId;
-            $entry = Entry::findOne($entryId);
-            if ($entry) {
-                $entry->setFieldValue('averageRating', RatingsHelpers::getAverageRating($entryId));
-                $entry->setFieldValue('totalRatings', RatingsHelpers::getTotalRatings($entryId));
-                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($entryId));
-                Craft::$app->elements->saveElement($entry, false, true, false);
-            }
+            Feedback::$plugin->feedbackService->updateEntryRatings($entryId);
         }
 
         return $recordSaved;
@@ -280,9 +273,14 @@ class FeedbackService extends Component
      */
     public function updateSelectedFeedback(array $feedbackItems, string $status): bool
     {
-        foreach ($feedbackItems as $key => $feedback) {
+        foreach ($feedbackItems as $feedback) {
             if ($feedback) {
                 $this->_updateFeedbackStatus($feedback->id, $status);
+                try {
+                    Feedback::$plugin->feedbackService->updateEntryRatings($feedback->entryId);
+                } catch (ElementNotFoundException | Exception | Throwable $e) {
+                    Craft::error("Error updating Entry ratings");
+                }
             } else {
                 Craft::error("Can't update status");
             }
@@ -291,6 +289,41 @@ class FeedbackService extends Component
         return true;
     }
 
+    /**
+     * Update selected feedback statuses
+     *
+     * @param int $entryId
+     * @return void
+     * @throws ElementNotFoundException
+     * @throws Exception
+     * @throws Throwable
+     */
+    public function updateEntryRatings(int $entryId): void
+    {
+        $entry = Entry::findOne($entryId);
+        $hasAverageRating = isset($entry->averageRating);
+        $hasTotalRatings = isset($entry->totalRatings);
+        $hasTotalPending = isset($entry->totalPending);
+
+        if ($entry) {
+            if ($hasAverageRating) {
+                $entry->setFieldValue('averageRating', RatingsHelpers::getAverageRating($entryId));
+            }
+            if ($hasTotalRatings) {
+                $entry->setFieldValue('totalRatings', RatingsHelpers::getTotalRatings($entryId));
+            }
+            if ($hasTotalPending) {
+                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($entryId));
+            }
+            if ($hasAverageRating || $hasTotalPending || $hasTotalRatings) {
+                Craft::$app->elements->saveElement($entry, false, true, false);
+            }
+        }
+    }
+
+
+    // PRIVATE METHODS ==================================
+    // ==================================================
     /**
      * updateFeedbackStatus
      *
