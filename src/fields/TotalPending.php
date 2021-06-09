@@ -13,7 +13,7 @@ class TotalPending extends Field {
     // Human readable name
     public static function displayName(): string
     {
-        return 'Total Pending Reviews';
+        return 'Total Pending';
     }
 
     public function getContentColumnType(): string

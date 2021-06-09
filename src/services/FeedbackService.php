@@ -22,7 +22,6 @@ use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\helpers\RatingsHelpers;
 use Throwable;
 use yii\base\Exception;
-use yii\db\StaleObjectException;
 
 /**
  * FeedbackService Service
@@ -54,20 +53,10 @@ class FeedbackService extends Component
     public function createFeedbackRecord(FeedbackElement $feedback): bool
     {
         // save record in DB
-        $saveElement = Craft::$app->getElements()->saveElement($feedback);
-
-        if ($saveElement) {
-
-            $entry = Entry::findOne($feedback->entryId);
-
-            if ($entry) {
-                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($feedback->entryId));
-                Craft::$app->elements->saveElement($entry, false, true, false);
-            }
-
-            return true;
-        } else {
-            return false;
+        try {
+            return Craft::$app->getElements()->saveElement($feedback);
+        } catch (ElementNotFoundException | Exception | Throwable $e) {
+            Craft::error('Unable to create feedback');
         }
     }
 
@@ -102,33 +91,6 @@ class FeedbackService extends Component
     }
 
     /**
-     * deleteFeedback
-     *
-     * @param int $feedbackId
-     * @throws Throwable
-     * @throws StaleObjectException
-     */
-    public function deleteFeedbackById(int $feedbackId): void
-    {
-        // get record from DB
-        $feedbackRecord = FeedbackRecord::find()
-            ->where(['id' => $feedbackId])
-            ->one();
-
-        // if record exists then delete
-        if ($feedbackRecord) {
-            // delete record from DB
-            $feedbackRecord->delete();
-        }
-
-        // log reset
-        Craft::warning(Craft::t('feedback', 'Feedback with ID {feedbackId} reset by {username}', [
-            'feedbackId' => $feedbackId,
-            'username' => Craft::$app->getUser()->getIdentity()->username,
-        ]), 'Feedback');
-    }
-
-    /**
      * Get the feedback items belonging to an entry
      *
      * @param int $entryId
@@ -139,7 +101,7 @@ class FeedbackService extends Component
         // get all records from DB related to entry
         $entryFeedback = FeedbackRecord::find()
             ->where(['entryId' => $entryId, 'feedbackStatus' => FeedbackStatus::Approved])
-            ->orderBy('dateCreated')
+            ->orderBy(['dateCreated' => SORT_DESC])
             ->all();
 
         $feedbackElements = [];
@@ -290,7 +252,7 @@ class FeedbackService extends Component
     }
 
     /**
-     * Update selected feedback statuses
+     * Update single entry rating by id
      *
      * @param int $entryId
      * @return void
@@ -318,6 +280,23 @@ class FeedbackService extends Component
             if ($hasAverageRating || $hasTotalPending || $hasTotalRatings) {
                 Craft::$app->elements->saveElement($entry, false, true, false);
             }
+        }
+    }
+
+    /**
+     * Update all entry ratings
+     *
+     * @return void
+     * @throws ElementNotFoundException
+     * @throws Exception
+     * @throws Throwable
+     */
+    public function updateAllEntryRatings(): void
+    {
+        $entries = Entry::findAll();
+
+        foreach ($entries as $entry) {
+            $this->updateEntryRatings($entry->id);
         }
     }
 

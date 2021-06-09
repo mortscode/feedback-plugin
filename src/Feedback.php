@@ -26,8 +26,6 @@ use mortscode\feedback\widgets\FeedbackWidget;
 
 use Craft;
 use craft\base\Plugin;
-use craft\services\Plugins;
-use craft\events\PluginEvent;
 use craft\web\UrlManager;
 use craft\services\Elements;
 use craft\services\Fields;
