@@ -248,6 +248,7 @@ class FeedbackElement extends Element
     }
 
     // TABLE ATTRIBUTES
+    // ------------------------------------
 
     /**
      * @return string[]
@@ -322,6 +323,7 @@ class FeedbackElement extends Element
     }
 
     // SEARCHABLE DATA
+    // ------------------------------------
 
     /**
      * @return string[]
@@ -344,6 +346,11 @@ class FeedbackElement extends Element
      */
     public function getEntry(): Entry
     {
+        // Was the entry already eager-loaded?
+        if (($entry = $this->getEagerLoadedElements('entry')) !== null) {
+            return $entry[0];
+        }
+
         return Craft::$app->entries->getEntryById($this->entryId);
     }
 
@@ -356,6 +363,8 @@ class FeedbackElement extends Element
     }
 
     // VALIDATION RULES
+    // ------------------------------------
+
     /**
      * @inheritdoc
      */
@@ -390,6 +399,7 @@ class FeedbackElement extends Element
 
     // ACTIONS
     // ------------------------------------
+
     /**
      * @inheritdoc
      */
@@ -422,7 +432,6 @@ class FeedbackElement extends Element
 
     // EAGER LOADING
     // ------------------------------------
-
     public static function eagerLoadingMap(array $sourceElements, string $handle)
     {
         if ($handle === 'entry') {
@@ -431,8 +440,10 @@ class FeedbackElement extends Element
 
             $map = (new Query())
                 ->select(['id as source', 'entryId as target'])
-                ->from(['{{%entries}}'])
-                ->where(['and', ['id' => $sourceElementIds]])
+                ->from(['{{%feedback_record}}'])
+                ->where([
+                    'id' => $sourceElementIds
+                ])
                 ->all();
 
             return [

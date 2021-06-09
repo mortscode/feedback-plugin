@@ -7,7 +7,6 @@ use Craft;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
-use mortscode\feedback\records\ReviewsRecord;
 
 class RatingsHelpers
 {

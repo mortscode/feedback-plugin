@@ -1,8 +1,8 @@
 <?php
 /**
- * Reviews plugin for Craft CMS 3.x
+ * Feedback plugin for Craft CMS 3.x
  *
- * An entry reviews plugin
+ * An entry feedback plugin
  *
  * @link      https://github.com/mortscode
  * @copyright Copyright (c) 2020 Scot Mortimer
@@ -34,7 +34,7 @@ use GuzzleHttp\Client;
 use SimpleXMLElement;
 
 /**
- * Reviews Controller
+ * Feedback Controller
  *
  * Generally speaking, controllers are the middlemen between the front end of
  * the CP/website and your plugin’s services. They contain action methods which
@@ -240,6 +240,7 @@ class FeedbackController extends Controller
      * @throws BadRequestHttpException
      * @throws MissingComponentException
      * @throws Exception
+     * @throws \Throwable
      */
     public function actionImportXml()
     {
@@ -311,6 +312,9 @@ class FeedbackController extends Controller
         $this->_createImportedRecords($threads);
 
         Craft::$app->getSession()->setNotice('Disqus XML imported');
+
+        // Update the ratings values for all entries
+        Feedback::$plugin->feedbackService->updateAllEntryRatings();
 
         // Ok, definitely valid + saved!
         return $this->redirect('feedback');

@@ -53,7 +53,7 @@ class FeedbackElementQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
-        // join in the reviews table
+        // join in the feedback table
         $this->joinElementTable('feedback_record');
 
         // select the column
