@@ -11,7 +11,9 @@
 namespace mortscode\feedback\controllers;
 
 use craft\elements\Entry;
+use craft\errors\ElementNotFoundException;
 use craft\errors\MissingComponentException;
+use craft\web\Request;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use mortscode\feedback\elements\FeedbackElement;
@@ -82,28 +84,33 @@ class FeedbackController extends Controller
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
+        $request = Craft::$app->getRequest();
 
-        // first, validate the Recaptcha success
-        $validRecaptcha = $this->_verifyRecaptcha();
+        if (!RequestHelpers::isCpRequest()) {
 
-        if (!$validRecaptcha) {
-            // error if ReCaptcha fails
-            Craft::$app->getSession()->setError('Sorry, there was a problem validating the feedback. Please try again.');
+            // first, validate the Recaptcha success
+            $validRecaptcha = $this->_verifyRecaptcha();
 
-            return null;
+            if (!$validRecaptcha) {
+                // error if ReCaptcha fails
+                Craft::$app->getSession()->setError('Sorry, there was a problem validating the feedback. Please try again.');
+
+                return null;
+            }
         }
 
-        // Create a new FeedbackElement model
-        $feedback = $this->_getFeedbackElementModel();
+        // Determine whether we're creating or updating and get that model back
+        $feedback = $this->_getFeedbackElementModel($request->getParam('feedbackId', null));
         $feedbackVariable = $this->request->getValidatedBodyParam('feedbackVariable') ?? 'feedback';
 
         // Populate the new element model
-        $this->_populateFeedbackElement($feedback);
+        $feedback = $this->_populateFeedbackElement($feedback, $request);
 
         // Validate the new FeedbackModel model
         $isValid = $feedback->validate();
 
         if ($isValid) {
+            // IF VALID, LET'S TRY TO SAVE THE ELEMENT
             if (!Craft::$app->getElements()->saveElement($feedback)) {
                 if ($this->request->getAcceptsJson()) {
                     return $this->asJson([
@@ -145,92 +152,16 @@ class FeedbackController extends Controller
                 'rating' => $feedback->rating,
                 'entryId' => $feedback->entryId,
                 'comment' => $feedback->comment,
+                'response' => $feedback->response,
                 'feedbackType' => $feedback->feedbackType,
                 'feedbackStatus' => $feedback->feedbackStatus,
                 'feedbackOrigin' => $feedback->feedbackOrigin,
             ]);
         }
 
-        // Send email to user if request is from frontend (not CP)
-        if ($feedback->feedbackOrigin == FeedbackOrigin::FRONTEND) {
-            $emailFeedback = [
-                'name' => $feedback->name,
-                'email' => $feedback->email,
-                'comment' => $feedback->comment,
-                'feedbackType' => $feedback->feedbackType,
-                'entryId' => $feedback->entryId,
-                'rating' => $feedback->rating,
-            ];
-
-            !EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_NEW_FEEDBACK, $emailFeedback);
-        }
-
-        Feedback::$plugin->feedbackService->updateEntryRatings($feedback->entryId);
-
         // Ok, definitely valid + saved!
         $this->setSuccessFlash(Craft::t('feedback', 'Feedback saved'));
         return $this->redirectToPostedUrl($feedback);
-    }
-
-    /**
-     * Update Action
-     *
-     * Update the feedback status //TODO
-     * add/edit a feedback response
-     *
-     * @return Response
-     * @throws BadRequestHttpException|MissingComponentException
-     * @throws \yii\base\InvalidConfigException
-     */
-    public function actionUpdate(): Response
-    {
-        $this->requirePostRequest();
-        
-        $request = Craft::$app->getRequest();
-        $feedbackId = $request->getRequiredParam('feedbackId');
-        $requestResponse = Craft::$app->getRequest()->getParam('response');
-        $requestStatus = Craft::$app->getRequest()->getParam('status');
-
-        $feedback = FeedbackRecord::find()
-            ->where(['id' => $feedbackId])
-            ->one();
-
-        $attributes[] = [
-            'response' => $requestResponse ?? '',
-            'feedbackStatus' => $requestStatus,
-        ];
-
-        Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes[0]);
-
-        $feedbackApproved = $requestStatus == FeedbackStatus::Approved;
-        $importedFeedback = $feedback['feedbackOrigin'] == FeedbackOrigin::IMPORT_DISQUS;
-        $feedbackHasEmail = $feedback['email'];
-        $responseUpdated = $requestResponse !== $feedback['response'];
-        $approvedWithResponse = $feedback['feedbackStatus'] !== FeedbackStatus::Approved && $requestStatus == FeedbackStatus::Approved && $requestResponse;
-
-        // Send response email to frontend users
-        if (!$importedFeedback && $feedbackHasEmail && $feedbackApproved) {
-            $emailData = [
-                'name' => $feedback['name'],
-                'email' => $feedback['email'],
-                'comment' => $feedback['comment'],
-                'response' => $requestResponse,
-                'feedbackType' => $feedback['feedbackType'],
-                'entryId' => $feedback['entryId'],
-                'rating' => $feedback['rating'],
-            ];
-
-            // response has been updated since last save
-            // or
-            // response is newly approved and has a response
-            if ($responseUpdated || $approvedWithResponse) {
-                EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_FEEDBACK_RESPONSE, $emailData);
-            }
-        }
-
-        Craft::$app->getSession()->setNotice('Feedback updated');
-
-        return $this->redirect('feedback');
     }
 
     /**
@@ -498,9 +429,9 @@ class FeedbackController extends Controller
                 $newFeedback->feedbackOrigin = FeedbackOrigin::IMPORT_DISQUS;
 
                 // review is valid, let's create the record
-                $createReview = Feedback::$plugin->feedbackService->createFeedbackRecord($newFeedback);
-                
-                if (!$createReview) {
+                try {
+                    Craft::$app->getElements()->saveElement($newFeedback);
+                } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
                     // set error if save isn't successful
                     Craft::$app->getSession()->setError('Your feedback entry could not be saved. Please try again.');
                     // pass review back to template
@@ -516,27 +447,46 @@ class FeedbackController extends Controller
 
     /**
      * _getFeedbackElementModel
-     *
+     * @param int|null $id
      * @return FeedbackElement()
      */
-    private function _getFeedbackElementModel(): FeedbackElement
+    private function _getFeedbackElementModel(?int $id): FeedbackElement
     {
-        // TODO Figure out if we're creating or updating
+        if ($id) {
+            $feedback = FeedbackElement::findOne($id);
+            return $feedback ?: new FeedbackElement();
+        }
+
         return new FeedbackElement();
+    }
+
+    /**
+     * @param string|null $origin
+     * @return FeedbackElement
+     */
+    private function _handleFeedbackOrigin(?string $origin): string
+    {
+        if ($origin) {
+            return $origin;
+        }
+
+        return RequestHelpers::isCpRequest() ? FeedbackOrigin::CONTROL_PANEL : FeedbackOrigin::FRONTEND;
     }
 
     /**
      * _populateFeedbackElement
      *
      * @param FeedbackElement $feedback
+     * @param Request $request
+     * @return FeedbackElement
      */
-    private function _populateFeedbackElement(FeedbackElement $feedback): void
+    private function _populateFeedbackElement(FeedbackElement $feedback, Request $request): FeedbackElement
     {
-        $request = Craft::$app->getRequest();
-
-        // get IP and User Agent
-        $feedback->ipAddress = $request->getUserIP();
-        $feedback->userAgent = $request->getUserAgent();
+        if (!RequestHelpers::isCpRequest()) {
+            // get IP and User Agent
+            $feedback->ipAddress = $request->getUserIP();
+            $feedback->userAgent = $request->getUserAgent();
+        }
 
         // get form fields
         $feedback->rating = $request->getParam('rating', $feedback->rating);
@@ -544,9 +494,12 @@ class FeedbackController extends Controller
         $feedback->name = $request->getParam('name', $feedback->name);
         $feedback->email = $request->getParam('email', $feedback->email);
         $feedback->comment = $request->getParam('comment', $feedback->comment);
+        $feedback->response = $request->getParam('response', $feedback->response);
         $feedback->feedbackType = $request->getParam('feedbackType', $feedback->feedbackType);
-        $feedback->feedbackStatus = RequestHelpers::isCpRequest() ? FeedbackStatus::Approved : FeedbackStatus::Pending;
-        $feedback->feedbackOrigin = RequestHelpers::isCpRequest() ? FeedbackOrigin::CONTROL_PANEL : FeedbackOrigin::FRONTEND;
+        $feedback->feedbackStatus = $request->getParam('feedbackStatus', $feedback->feedbackStatus);
+        $feedback->feedbackOrigin = $this->_handleFeedbackOrigin($feedback->feedbackOrigin);
+
+        return $feedback;
     }
 
     /**

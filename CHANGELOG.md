@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.4 - 2021-06-11
+### Added
+- Pending source for CP
+- Responses have a table option
+- Added responses to Element Query
+
+### Fixed
+- Save & update now use the same method
+- Saving via element save only
+
+### Fixed
+- Import Ratings updater
+- Cleaned up some comments and naming conventions
+
 ## 1.0.3 - 2021-06-08
 ### Added
 - Feedback Elements eager-load related Entries

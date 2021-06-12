@@ -11,6 +11,7 @@ class FeedbackElementQuery extends ElementQuery
     public $entryId;
     public $name;
     public $rating;
+    public $response;
     public $feedbackType;
     public $feedbackStatus;
     public $feedbackOrigin;
@@ -30,6 +31,12 @@ class FeedbackElementQuery extends ElementQuery
     public function rating($value): FeedbackElementQuery
     {
         $this->rating = $value;
+        return $this;
+    }
+
+    public function response($value): FeedbackElementQuery
+    {
+        $this->response = $value;
         return $this;
     }
 
@@ -61,6 +68,7 @@ class FeedbackElementQuery extends ElementQuery
             'feedback_record.entryId',
             'feedback_record.name',
             'feedback_record.rating',
+            'feedback_record.response',
             'feedback_record.feedbackType',
             'feedback_record.feedbackStatus',
             'feedback_record.feedbackOrigin',
@@ -83,6 +91,13 @@ class FeedbackElementQuery extends ElementQuery
         if ($this->rating) {
             $this->subQuery->andWhere(Db::parseParam(
                 'feedback_record.rating',
+                $this->rating)
+            );
+        }
+
+        if ($this->rating) {
+            $this->subQuery->andWhere(Db::parseParam(
+                'feedback_record.response',
                 $this->rating)
             );
         }
