@@ -36,28 +36,28 @@ class FeedbackVariable
     // Public Methods
     // =========================================================================
 
-    /**
-     * createFeedbackRecord
-     *
-     * @param FeedbackModel $feedback
-     * @return bool
-     */
-    public function createFeedbackRecord(FeedbackModel $feedback): bool
-    {
-        return Feedback::$plugin->feedbackService->createFeedbackRecord($feedback);
-    }
+//    /**
+//     * createFeedbackRecord
+//     *
+//     * @param FeedbackModel $feedback
+//     * @return bool
+//     */
+//    public function createFeedbackRecord(FeedbackModel $feedback): bool
+//    {
+//        return Feedback::$plugin->feedbackService->createFeedbackRecord($feedback);
+//    }
 
-    /**
-     * updateFeedbackRecord
-     *
-     * @param int $feedbackId
-     * @param array $attributes
-     * @return bool
-     */
-    public function updateFeedbackRecord(int $feedbackId, array $attributes): bool
-    {
-        return Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes);
-    }
+//    /**
+//     * updateFeedbackRecord
+//     *
+//     * @param int $feedbackId
+//     * @param array $attributes
+//     * @return bool
+//     */
+//    public function updateFeedbackRecord(int $feedbackId, array $attributes): bool
+//    {
+//        return Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes);
+//    }
 
     /**
      * getEntryFeedback

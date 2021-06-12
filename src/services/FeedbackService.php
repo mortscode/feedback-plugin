@@ -13,15 +13,19 @@ namespace mortscode\feedback\services;
 use craft\elements\Entry;
 use craft\errors\ElementNotFoundException;
 use mortscode\feedback\elements\FeedbackElement;
+use mortscode\feedback\enums\FeedbackMessages;
+use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\Feedback;
 
 use Craft;
 use craft\base\Component;
 use mortscode\feedback\enums\FeedbackStatus;
+use mortscode\feedback\helpers\EmailHelpers;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\helpers\RatingsHelpers;
 use Throwable;
 use yii\base\Exception;
+use yii\base\InvalidConfigException;
 
 /**
  * FeedbackService Service
@@ -37,59 +41,12 @@ use yii\base\Exception;
  * @since     1.0.0
  *
  * @property-read null|String $recaptchaKey
+ * @property-read null|String $emailHeaderUrl
+ * @property-read int $totalPendingFeedback
  * @property-read array $statusValues
  */
 class FeedbackService extends Component
 {
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * createFeedbackRecord
-     *
-     * @param $feedback FeedbackElement
-     * @return bool
-     */
-    public function createFeedbackRecord(FeedbackElement $feedback): bool
-    {
-        // save record in DB
-        try {
-            return Craft::$app->getElements()->saveElement($feedback);
-        } catch (ElementNotFoundException | Exception | Throwable $e) {
-            Craft::error('Unable to create feedback');
-        }
-    }
-
-    /**
-     * updateFeedbackRecord
-     *
-     * @param int $feedbackId
-     * @param $attributes
-     * @return bool
-     * @throws ElementNotFoundException
-     * @throws Exception
-     * @throws Throwable
-     */
-    public function updateFeedbackRecord(int $feedbackId, $attributes): bool
-    {
-        $feedbackRecord = FeedbackRecord::find()
-            ->where(['id' => $feedbackId])
-            ->one();
-        $feedbackRecord->response = $attributes['response'];
-        $feedbackRecord->feedbackStatus = $attributes['feedbackStatus'];
-
-        // save record in DB
-        $recordSaved = $feedbackRecord->save();
-
-        // update the ratings fields
-        if ($recordSaved) {
-            $entryId = $feedbackRecord->entryId;
-            Feedback::$plugin->feedbackService->updateEntryRatings($entryId);
-        }
-
-        return $recordSaved;
-    }
-
     /**
      * Get the feedback items belonging to an entry
      *
@@ -161,9 +118,9 @@ class FeedbackService extends Component
 
         if ($recaptchaKey) {
             return Craft::parseEnv($settings->recaptchaSiteKey);
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
@@ -178,9 +135,9 @@ class FeedbackService extends Component
 
         if ($emailHeaderUrl) {
             return Craft::parseEnv($settings->emailHeaderUrl);
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
@@ -232,12 +189,14 @@ class FeedbackService extends Component
      * @param string $status
      * @return bool
      * @throws \yii\db\Exception
+     * @throws InvalidConfigException
      */
     public function updateSelectedFeedback(array $feedbackItems, string $status): bool
     {
         foreach ($feedbackItems as $feedback) {
             if ($feedback) {
                 $this->_updateFeedbackStatus($feedback->id, $status);
+
                 try {
                     Feedback::$plugin->feedbackService->updateEntryRatings($feedback->entryId);
                 } catch (ElementNotFoundException | Exception | Throwable $e) {
@@ -254,14 +213,18 @@ class FeedbackService extends Component
     /**
      * Update single entry rating by id
      *
-     * @param int $entryId
+     * @param int|null $entryId
      * @return void
      * @throws ElementNotFoundException
      * @throws Exception
      * @throws Throwable
      */
-    public function updateEntryRatings(int $entryId): void
+    public function updateEntryRatings(?int $entryId): void
     {
+        if (!$entryId) {
+            return;
+        }
+
         $entry = Entry::findOne($entryId);
         $hasAverageRating = isset($entry->averageRating);
         $hasTotalRatings = isset($entry->totalRatings);
@@ -279,6 +242,62 @@ class FeedbackService extends Component
             }
             if ($hasAverageRating || $hasTotalPending || $hasTotalRatings) {
                 Craft::$app->elements->saveElement($entry, false, true, false);
+            }
+        }
+    }
+
+    /**
+     * handleMailDelivery
+     *
+     * Takes in original feedback record, if it exists
+     * Compares its values to the updated feedback element
+     * Determines whether or not to send email
+     *
+     * @param bool $isNew
+     * @param FeedbackRecord|null $feedback
+     * @throws InvalidConfigException
+     */
+    public function handleMailDelivery(bool $isNew, ?FeedbackRecord $feedback): void
+    {
+        if (!$feedback) {
+            return;
+        }
+
+        $emailData = [
+            'name' => $feedback->name,
+            'email' => $feedback->email,
+            'comment' => $feedback->comment,
+            'response' => $feedback->response,
+            'feedbackType' => $feedback->feedbackType,
+            'entryId' => $feedback->entryId,
+            'rating' => $feedback->rating,
+        ];
+
+        // IF FEEDBACK IS NEW && FROM THE FRONTEND, SEND EMAIL
+        if ($isNew) {
+            if (!$feedback->feedbackOrigin == FeedbackOrigin::FRONTEND) {
+                return;
+            }
+
+            !EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_NEW_FEEDBACK, $emailData);
+
+            return;
+        }
+
+        $feedbackApproved = $feedback->feedbackStatus == FeedbackStatus::Approved;
+        $importedFeedback = $feedback->oldAttributes['feedbackOrigin'] == FeedbackOrigin::IMPORT_DISQUS;
+        $responseUpdated = $feedback->oldAttributes['response'] !== $feedback->response;
+        $approvedWithResponse = $feedback->response != null
+            && $feedback->oldAttributes['feedbackStatus'] !== FeedbackStatus::Approved
+            && $feedback == FeedbackStatus::Approved;
+
+        // IF NOT IMPORTED, HAS AN EMAIL PROPERTY, AND IS APPROVED, CONSIDER EMAILING
+        if (!$importedFeedback && $feedbackApproved) {
+            // response has been updated since last save
+            // or
+            // response is newly approved and has a response
+            if ($responseUpdated || $approvedWithResponse) {
+                EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_FEEDBACK_RESPONSE, $emailData);
             }
         }
     }

@@ -9,7 +9,9 @@ use craft\elements\db\ElementQueryInterface;
 use craft\elements\actions\Restore;
 use craft\elements\actions\Delete;
 use craft\elements\Entry;
+use craft\errors\ElementNotFoundException;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use DateTime;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
@@ -217,6 +219,16 @@ class FeedbackElement extends Element
     }
 
     /**
+     * @param string $type
+     * @return int|null
+     */
+    public function getTotalPendingCount(): ?int
+    {
+        $pendingCount = Feedback::$plugin->feedbackService->getTotalPendingFeedback();
+        return $pendingCount > 0 ? $pendingCount : null;
+    }
+
+    /**
      * @param string|null $context
      * @return array[]
      */
@@ -227,6 +239,14 @@ class FeedbackElement extends Element
                 'key' => '*',
                 'label' => 'All Feedback',
                 'criteria' => []
+            ],
+            [
+                'key' => 'allPending',
+                'label' => 'All Pending',
+                'badgeCount' => (new FeedbackElement)->getTotalPendingCount(),
+                'criteria' => [
+                    'feedbackStatus' => FeedbackStatus::Pending,
+                ]
             ],
             [
                 'key' => 'reviews',
@@ -259,6 +279,7 @@ class FeedbackElement extends Element
             'name' => 'Name',
             'rating' => 'Rating',
             'recipe' => 'Recipe',
+            'hasResponse' => 'Response',
             'dateCreated' => 'Created',
             'dateUpdated' => 'Updated',
         ];
@@ -293,6 +314,16 @@ class FeedbackElement extends Element
                     return Craft::$app->getView()->renderTemplate('feedback/_elements/table-recipe', $vars);
                 } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
                     return $this->entryId;
+                }
+            case 'hasResponse':
+                $vars = [
+                  'response' => $this->response
+                ];
+
+                try {
+                    return Craft::$app->getView()->renderTemplate('feedback/_elements/has-response', $vars);
+                } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
+                    Craft::error('No response on this element');
                 }
         }
 
@@ -462,6 +493,7 @@ class FeedbackElement extends Element
      *
      * @inheritdoc
      * @throws Exception if reasons
+     * @throws InvalidConfigException
      */
     public function afterSave(bool $isNew): void
     {
@@ -491,7 +523,15 @@ class FeedbackElement extends Element
             $feedbackRecord->feedbackOrigin = $this->feedbackOrigin;
             $feedbackRecord->dateCreated = $this->dateCreated;
 
-            $feedbackRecord->save(false);
+            Feedback::$plugin->feedbackService->handleMailDelivery($isNew, $feedbackRecord);
+
+            $feedbackRecord->save(true);
+        }
+
+        try {
+            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
+        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
+            Craft::error('Unable to update entry ratings after Element Save');
         }
 
         parent::afterSave($isNew);
@@ -501,11 +541,14 @@ class FeedbackElement extends Element
      * afterDelete Event
      *
      * @inheritdoc
-     * @throws Exception if reasons
      */
     public function afterDelete(): void
     {
-        Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
+        try {
+            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
+        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
+            Craft::error('Unable to update entry ratings after Element Delete');
+        }
 
         parent::afterDelete();
     }
