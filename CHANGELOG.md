@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.5 - 2021-06-14
+### Added
+- Passing form errors back to template on failed validation
+- Updated README with usage instructions
+
 ## 1.0.4 - 2021-06-11
 ### Added
 - Pending source for CP
@@ -13,10 +18,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Fixed
 - Save & update now use the same method
 - Saving via element save only
-
-### Fixed
-- Import Ratings updater
-- Cleaned up some comments and naming conventions
 
 ## 1.0.3 - 2021-06-08
 ### Added

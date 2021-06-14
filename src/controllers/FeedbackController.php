@@ -131,7 +131,7 @@ class FeedbackController extends Controller
         } else {
             // review is not valid
             Craft::$app->getSession()->setError('Please check for form validation errors.');
-            // pass review back to template
+            // pass review with errors back to template
             Craft::$app->getUrlManager()->setRouteParams([
                 'feedback' => $feedback
             ]);
