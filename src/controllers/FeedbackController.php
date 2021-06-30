@@ -17,18 +17,16 @@ use craft\web\Request;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use mortscode\feedback\elements\FeedbackElement;
-use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackOrigin;
-use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
-use mortscode\feedback\helpers\EmailHelpers;
 use mortscode\feedback\helpers\RequestHelpers;
 use mortscode\feedback\records\FeedbackRecord;
 
 use Craft;
 use craft\web\Controller;
 use yii\base\ExitException;
+use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
@@ -79,7 +77,7 @@ class FeedbackController extends Controller
      * @return Response|null
      * @throws BadRequestHttpException|MissingComponentException
      * @throws GuzzleException
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function actionSave(): ?Response
     {
@@ -101,7 +99,6 @@ class FeedbackController extends Controller
 
         // Determine whether we're creating or updating and get that model back
         $feedback = $this->_getFeedbackElementModel($request->getParam('feedbackId', null));
-        $feedbackVariable = $this->request->getValidatedBodyParam('feedbackVariable') ?? 'feedback';
 
         // Populate the new element model
         $feedback = $this->_populateFeedbackElement($feedback, $request);
@@ -121,17 +118,12 @@ class FeedbackController extends Controller
 
                 $this->setFailFlash(Craft::t('app', 'Couldn’t save feedback.'));
 
-                // Send the category back to the template
-                Craft::$app->getUrlManager()->setRouteParams([
-                    $feedbackVariable => $feedback,
-                ]);
-
                 return null;
             }
         } else {
             // review is not valid
             Craft::$app->getSession()->setError('Please check for form validation errors.');
-            // pass review with errors back to template
+            // pass feedback with errors back to template
             Craft::$app->getUrlManager()->setRouteParams([
                 'feedback' => $feedback
             ]);
@@ -161,6 +153,7 @@ class FeedbackController extends Controller
 
         // Ok, definitely valid + saved!
         $this->setSuccessFlash(Craft::t('feedback', 'Feedback saved'));
+
         return $this->redirectToPostedUrl($feedback);
     }
 
