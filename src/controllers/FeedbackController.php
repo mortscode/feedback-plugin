@@ -128,6 +128,13 @@ class FeedbackController extends Controller
                 'feedback' => $feedback
             ]);
 
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson([
+                    'success' => false,
+                    'errors' => $feedback->getErrors(),
+                ]);
+            }
+
             return null;
         }
 
