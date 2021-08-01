@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.7 - 2021-08-01
+### Fixed
+- Issue where services were pulling from `FeedbackRecord` instead of `FeedbackElement`
+- Updated `FeedbackElementQuery` to include `$email`, `$ipAddress`, `$userAgent`
+
 ## 1.0.6 - 2021-07-01
 ### Added
 - JSON validation errors for submissions that break the rules

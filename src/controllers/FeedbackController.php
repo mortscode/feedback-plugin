@@ -395,7 +395,7 @@ class FeedbackController extends Controller
             
             // otherwise let's add the feedback comments
             foreach ($thread['comments'] as $comment) {
-                $existingRecord = FeedbackRecord::find()
+                $existingRecord = FeedbackElement::find()
                     ->where(['comment' => $comment, 'entryId' => $entry['id']])
                     ->one();
 

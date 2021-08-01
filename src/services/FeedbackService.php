@@ -55,41 +55,24 @@ class FeedbackService extends Component
      */
     public function getEntryFeedback(int $entryId): array
     {
-        // get all records from DB related to entry
-        $entryFeedback = FeedbackRecord::find()
-            ->where(['entryId' => $entryId, 'feedbackStatus' => FeedbackStatus::Approved])
+        return FeedbackElement::find()
+            ->where([
+                'entryId' => $entryId,
+                'feedbackStatus' => FeedbackStatus::Approved
+            ])
             ->orderBy(['dateCreated' => SORT_DESC])
             ->all();
-
-        $feedbackElements = [];
-
-        foreach ($entryFeedback as $feedbackRecord) {
-            $feedbackElement = new FeedbackElement();
-            $feedbackElement->setAttributes($feedbackRecord->getAttributes(), false);
-
-            $feedbackElements[] = $feedbackElement;
-        }
-
-        return $feedbackElements;
     }
 
     /**
      * getFeedbackById
      *
      * @param mixed $feedbackId
-     * @return FeedbackElement
+     * @return FeedbackElement|null
      */
-    public function getFeedbackById($feedbackId): FeedbackElement
+    public function getFeedbackById($feedbackId): ?FeedbackElement
     {
-        // get one record from DB related to entry
-        $feedbackRecord = FeedbackRecord::find()
-            ->where(['id' => $feedbackId])
-            ->one();
-
-        $feedbackElement = new FeedbackElement();
-        $feedbackElement->setAttributes($feedbackRecord->getAttributes(), false);
-
-        return $feedbackElement;
+        return FeedbackElement::findOne($feedbackId);
     }
 
     /**

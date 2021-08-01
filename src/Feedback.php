@@ -152,7 +152,7 @@ class Feedback extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['feedback/entries/<entryId:\d+>/<feedbackId:\d+>'] = ['template' => 'feedback/_feedback-detail'];
+                $event->rules['feedback/<entryId:\d+>/<feedbackId:\d+>'] = ['template' => 'feedback/_feedback-detail'];
                 $event->rules['feedback/create/<feedbackType:{slug}>/<entryId:\d+>'] = ['template' => 'feedback/_feedback-create'];
             }
         );
