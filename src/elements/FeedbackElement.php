@@ -205,7 +205,7 @@ class FeedbackElement extends Element
      */
     public function getCpEditUrl(): string
     {
-        return UrlHelper::cpUrl("feedback/entries/$this->entryId/$this->id");
+        return UrlHelper::cpUrl("feedback/$this->entryId/$this->id");
     }
 
     /**
