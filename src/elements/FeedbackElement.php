@@ -11,9 +11,9 @@ use craft\elements\actions\Delete;
 use craft\elements\Entry;
 use craft\errors\ElementNotFoundException;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use DateTime;
+use LitEmoji\LitEmoji;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
@@ -33,6 +33,7 @@ use yii\db\Exception;
  * @package mortscode\feedback\elements
  *
  * @property-read Entry $entry
+ * @property-read null|int $totalPendingCount
  * @property-read string $entryTitle
  */
 class FeedbackElement extends Element
@@ -191,6 +192,19 @@ class FeedbackElement extends Element
      * @var string|null
      */
     public $feedbackOrigin = null;
+
+    /**
+     * @inheritdoc
+     */
+    public function init()
+    {
+        parent::init();
+
+        // Decode geoIp if not empty
+        $this->name = LitEmoji::shortcodeToUnicode($this->name);
+        $this->comment = LitEmoji::shortcodeToUnicode($this->comment);
+        $this->response = LitEmoji::shortcodeToUnicode($this->response);
+    }
 
     /**
      * @return string|null
@@ -463,6 +477,11 @@ class FeedbackElement extends Element
 
     // EAGER LOADING
     // ------------------------------------
+    /**
+     * @param array $sourceElements
+     * @param string $handle
+     * @return array|false|null
+     */
     public static function eagerLoadingMap(array $sourceElements, string $handle)
     {
         if ($handle === 'entry') {
@@ -488,6 +507,7 @@ class FeedbackElement extends Element
 
     // EVENTS
     // ------------------------------------
+
     /**
      * afterSave Event
      *
@@ -510,12 +530,16 @@ class FeedbackElement extends Element
                 $feedbackRecord->id = (int)$this->id;
             }
 
+            $encodedName = LitEmoji::encodeShortcode($this->name);
+            $encodedComment = LitEmoji::encodeShortcode($this->comment);
+            $encodedResponse = LitEmoji::encodeShortcode($this->response);
+
             $feedbackRecord->entryId = $this->entryId;
-            $feedbackRecord->name = $this->name;
+            $feedbackRecord->name = $encodedName;
             $feedbackRecord->email = $this->email;
             $feedbackRecord->rating = $this->rating ?? null;
-            $feedbackRecord->comment = $this->comment;
-            $feedbackRecord->response = $this->response;
+            $feedbackRecord->comment = $encodedComment;
+            $feedbackRecord->response = $encodedResponse;
             $feedbackRecord->ipAddress = $this->ipAddress;
             $feedbackRecord->userAgent = $this->userAgent;
             $feedbackRecord->feedbackType = $this->feedbackType;
