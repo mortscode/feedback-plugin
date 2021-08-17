@@ -98,13 +98,12 @@
 	<div id="feedback">
 		<div class="feedback-content">
 			<h1 class="feedback-name">{{ feedback.name }}</h1>
+			<a href="{{ entry.url }}" class="feedback-entry" target="_blank">Link to {{ entry.title }}</a>
 			<h2>Email</h2>
-			<p class="feedback-email">{{ feedback.email ?? 'no email' }}</p>
+			<p class="feedback-email">{{ feedback.email ?: 'None given' }}</p>
 			{% if feedback.feedbackType == 'review' %}
 				<h2>Rating</h2>
-				<p class="feedback-rating">
-					{{ feedback.rating }}
-					/ 5</p>
+				<p class="feedback-rating">{{ feedback.rating }} / 5</p>
 			{% endif %}
 			<h2>Comment</h2>
 			<p class="feedback-comment">{{ feedback.comment }}</p>
