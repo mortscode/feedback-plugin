@@ -7,6 +7,10 @@
 
 {% set entry = craft.entries.id(entryId).one() %}
 {% set feedback = craft.feedback.getFeedbackById(feedbackId) %}
+{% set convertButtonText = feedback.feedbackType == 'review'
+	? 'Convert to Question'
+	: 'Convert to 5-Star Review'
+%}
 
 {% if feedback.ipAddress %}
 	{% set location = craft.feedback.getLocationByIp(feedback.ipAddress) %}
@@ -44,6 +48,10 @@
 	</div>
 	<div class="meta read-only">
 		<div class="data">
+			<h5 class="heading">Type:</h5>
+			<div class="value">
+				<span class="feedback-type">{{ feedback.feedbackType|capitalize }}</span>
+			</div>
 			<h5 class="heading">Created:</h5>
 			<div class="value">
 				<span class="user-agent">{{ feedback.dateCreated|date() }}</span>
@@ -69,6 +77,11 @@
 			{% endif %}
 		</div>
 	</div>
+	<div>
+		<div class="flex">
+			<a href="{{ actionUrl('feedback/feedback/convert-feedback', { feedbackId: feedback.id }) }}" class="btn secondary">{{ convertButtonText }}</a>
+		</div>
+	</div>
 {% endblock %}
 
 {% block content %}
@@ -85,10 +98,15 @@
 	<div id="feedback">
 		<div class="feedback-content">
 			<h1 class="feedback-name">{{ feedback.name }}</h1>
-			<p class="feedback-email">{{ feedback.email }}</p>
-			<p class="feedback-rating">Rating:
-				{{ feedback.rating }}
-				/ 5</p>
+			<h2>Email</h2>
+			<p class="feedback-email">{{ feedback.email ?? 'no email' }}</p>
+			{% if feedback.feedbackType == 'review' %}
+				<h2>Rating</h2>
+				<p class="feedback-rating">
+					{{ feedback.rating }}
+					/ 5</p>
+			{% endif %}
+			<h2>Comment</h2>
 			<p class="feedback-comment">{{ feedback.comment }}</p>
 		</div>
 		<hr>
