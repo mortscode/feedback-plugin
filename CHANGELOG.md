@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.9 - 2021-08-16
+### Added
+- Ability to convert a question to a review and vice versa
+- Questions converted to reviews are automatically given 5 stars
+
 ## 1.0.8 - 2021-08-05
 ### Fixed
 - Fixed issue where emojis were breaking feedback comments, names, and responses

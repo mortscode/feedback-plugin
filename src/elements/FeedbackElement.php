@@ -233,7 +233,6 @@ class FeedbackElement extends Element
     }
 
     /**
-     * @param string $type
      * @return int|null
      */
     public function getTotalPendingCount(): ?int

@@ -164,6 +164,50 @@ class FeedbackController extends Controller
     }
 
     /**
+     * @throws \Throwable
+     * @throws ElementNotFoundException
+     * @throws \yii\base\Exception
+     * @throws BadRequestHttpException
+     */
+    public function actionConvertFeedback(): ?Response
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user->admin) {
+            return null;
+        }
+
+        $request = Craft::$app->getRequest();
+
+        $feedbackId = $request->getRequiredParam('feedbackId');
+
+        $feedbackElement = FeedbackElement::findOne($feedbackId);
+
+        $feedbackType = $feedbackElement->feedbackType;
+
+        // if feedback is a review, remove rating on conversion,
+        // else set it to 5
+        $feedbackElement->rating = $feedbackType == FeedbackType::Review
+            ? null
+            : 5;
+        // if feedback is a review, change to question,
+        // if feedback is a question, change to review
+        $feedbackElement->feedbackType = $feedbackType == FeedbackType::Review
+            ? FeedbackType::Question
+            : FeedbackType::Review;
+
+        // save updated feedback
+        if (!Craft::$app->getElements()->saveElement($feedbackElement)) {
+
+            $this->setFailFlash(Craft::t('app', 'Couldn’t convert feedback.'));
+
+            return null;
+        }
+
+        return $this->redirect('/admin/feedback/' . $feedbackElement->entryId . '/' . $feedbackElement->id);
+    }
+
+    /**
      * Import XML data from Disqus
      *
      * @return void|Response
