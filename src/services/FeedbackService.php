@@ -12,6 +12,7 @@ namespace mortscode\feedback\services;
 
 use craft\elements\Entry;
 use craft\errors\ElementNotFoundException;
+use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackOrigin;
@@ -51,17 +52,16 @@ class FeedbackService extends Component
      * Get the feedback items belonging to an entry
      *
      * @param int $entryId
-     * @return array [FeedbackElement]
+     * @return FeedbackElementQuery [FeedbackElement]
      */
-    public function getEntryFeedback(int $entryId): array
+    public function getEntryFeedback(int $entryId): FeedbackElementQuery
     {
         return FeedbackElement::find()
             ->where([
                 'entryId' => $entryId,
                 'feedbackStatus' => FeedbackStatus::Approved
             ])
-            ->orderBy(['dateCreated' => SORT_DESC])
-            ->all();
+            ->orderBy(['dateCreated' => SORT_DESC]);
     }
 
     /**
