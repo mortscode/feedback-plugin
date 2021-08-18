@@ -10,14 +10,11 @@
 
 namespace mortscode\feedback\variables;
 
-use craft\errors\ElementNotFoundException;
+
+use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\Feedback;
 
-use Craft;
-use mortscode\feedback\models\FeedbackModel;
-use Throwable;
-use yii\db\Exception;
 
 /**
  * Feedback Variable
@@ -36,36 +33,13 @@ class FeedbackVariable
     // Public Methods
     // =========================================================================
 
-//    /**
-//     * createFeedbackRecord
-//     *
-//     * @param FeedbackModel $feedback
-//     * @return bool
-//     */
-//    public function createFeedbackRecord(FeedbackModel $feedback): bool
-//    {
-//        return Feedback::$plugin->feedbackService->createFeedbackRecord($feedback);
-//    }
-
-//    /**
-//     * updateFeedbackRecord
-//     *
-//     * @param int $feedbackId
-//     * @param array $attributes
-//     * @return bool
-//     */
-//    public function updateFeedbackRecord(int $feedbackId, array $attributes): bool
-//    {
-//        return Feedback::$plugin->feedbackService->updateFeedbackRecord($feedbackId, $attributes);
-//    }
-
     /**
      * getEntryFeedback
      *
      * @param int $entryId
-     * @return array[FeedbackElement]
+     * @return FeedbackElementQuery [FeedbackElement]
      */
-    public function getEntryFeedback(int $entryId): array
+    public function getEntryFeedback(int $entryId): FeedbackElementQuery
     {
         return Feedback::$plugin->feedbackService->getEntryFeedback($entryId);
     }
