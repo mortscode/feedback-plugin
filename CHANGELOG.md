@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 1.0.11 - 2021-08-18
 ### Fixed
 - Fixed issue where `getEntryFeedback()` service was using `.all()` which was limiting the use of `paginate` on the frontend templates.
-- Frontend templates can now use `.feedbackType()` alongside the service.
+- Frontend templates can now use `.feedbackType('[feedback type]')` alongside the service.
 
 ## 1.0.10 - 2021-08-16
 ### Added
