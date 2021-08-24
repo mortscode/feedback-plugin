@@ -10,18 +10,19 @@
 
 namespace mortscode\feedback;
 
-
 use craft\base\Model;
 use craft\events\RegisterEmailMessagesEvent;
+use craft\events\RegisterGqlTypesEvent;
+use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\models\SystemMessage;
 use craft\services\SystemMessages;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackType;
+use mortscode\feedback\gql\interfaces\elements\FeedbackInterface;
 use mortscode\feedback\services\FeedbackService;
 use mortscode\feedback\variables\FeedbackVariable;
 use mortscode\feedback\models\Settings;
-use mortscode\feedback\fields\FeedbackField;
 use mortscode\feedback\widgets\FeedbackWidget;
 
 use Craft;
@@ -37,7 +38,11 @@ use craft\events\RegisterUrlRulesEvent;
 use mortscode\feedback\fields\AverageRating;
 use mortscode\feedback\fields\TotalPending;
 use mortscode\feedback\fields\TotalRatings;
+
+use craft\events\RegisterGqlQueriesEvent;
+use craft\services\Gql;
 use yii\base\Event;
+use mortscode\feedback\gql\queries\FeedbackQuery;
 
 /**
  * Craft plugins are very much like little applications in and of themselves. We’ve made
@@ -215,6 +220,57 @@ class Feedback extends Plugin
                 'body' => file_get_contents(__DIR__ . '/emails/feedback_response.md'),
             ]);
         });
+
+        // GraphQL Events
+        Event::on(
+            Gql::class,
+            Gql::EVENT_REGISTER_GQL_TYPES,
+            function(RegisterGqlTypesEvent $event) {
+                $event->types[] = FeedbackInterface::class;
+            }
+        );
+
+//        Event::on(
+//            Gql::class,
+//            Gql::EVENT_REGISTER_GQL_QUERIES,
+//            function (RegisterGqlQueriesEvent $event) {
+//                $queries = FeedbackQuery::getQueries();
+//                foreach ($queries as $key => $value) {
+//                    $event->queries[$key] = $value;
+//                }
+//            }
+//        );
+
+        Event::on(
+            Gql::class,
+            Gql::EVENT_REGISTER_GQL_QUERIES,
+            function(RegisterGqlQueriesEvent $event) {
+
+                $queries = [
+                    FeedbackQuery::getQueries()
+                ];
+
+                foreach ($queries as $k => $v) {
+                    foreach ($v as $key => $value) {
+                        $event->queries[$key] = $value;
+                    }
+                }
+            }
+        );
+
+        Event::on(
+            Gql::class,
+            Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS,
+            function(RegisterGqlSchemaComponentsEvent $event) {
+                $event->queries = array_merge($event->queries, [
+                    // “Widgets” group
+                    'Feedback' => [
+                        // feedback component with read action, labelled “View Feedback” in UI
+                        'feedback:read' => ['label' => 'View Feedback']
+                    ],
+                ]);
+            }
+        );
 
 /**
  * Logging in Craft involves using one of the following methods:

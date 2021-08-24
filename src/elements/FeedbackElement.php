@@ -504,6 +504,18 @@ class FeedbackElement extends Element
         return parent::eagerLoadingMap($sourceElements, $handle);
     }
 
+    // GraphQl
+    // ------------------------------------
+    public static function gqlTypeNameByContext($context): string
+    {
+        return 'Feedback';
+    }
+
+    public function getGqlTypeName(): string
+    {
+        return static::gqlTypeNameByContext($this);
+    }
+
     // EVENTS
     // ------------------------------------
 
