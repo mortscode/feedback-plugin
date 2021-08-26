@@ -18,6 +18,16 @@ class FeedbackArguments extends StructureElementArguments
                 'type' => Type::listOf(Type::int()),
                 'description' => 'Narrows the query results based on the related Entry Id.'
             ],
+            'feedbackStatus' => [
+                'name' => 'feedbackStatus',
+                'type' => Type::listOf(Type::string()),
+                'description' => 'Narrows the query results based on the feedback status.'
+            ],
+            'feedbackType' => [
+                'name' => 'feedbackType',
+                'type' => Type::listOf(Type::string()),
+                'description' => 'Narrows the query results based on the type of feedback.'
+            ],
         ]);
     }
 }
