@@ -16,6 +16,7 @@ use craft\errors\MissingComponentException;
 use craft\web\Request;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use LitEmoji\LitEmoji;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackType;
@@ -327,6 +328,7 @@ class FeedbackController extends Controller
 
             // clean up html from text
             $formattedMessage = strip_tags($comment['message']);
+            $formattedMessage = LitEmoji::shortcodeToUnicode($formattedMessage);
             $formattedMessage = htmlspecialchars_decode($formattedMessage);
         
             $newComment = [

@@ -64,7 +64,6 @@ class Install extends Migration
             // Refresh the db schema caches
             Craft::$app->db->schema->refresh();
             $this->insertDefaultData();
-//            $this->updateEntryRatings();
         }
 
         return true;
@@ -80,11 +79,10 @@ class Install extends Migration
      * @return boolean return a false value to indicate the migration fails
      * and should not proceed further. All other return values mean the migration succeeds.
      */
-    public function safeDown()
+    public function safeDown(): bool
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         $this->removeTables();
-//        $this->resetEntryRatings();
 
         return true;
     }

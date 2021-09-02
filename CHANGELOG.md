@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.16 - 2021-09-02
+### Fixed
+- Fixed issue where disqus imported feedback wasn't converting Emojis to unicode
+
 ## 1.0.15 - 2021-09-02
 ### Removed
 - Removed entry review stats fields from plugin (`averageRating`, `totalRatings`, `totalPending`)
