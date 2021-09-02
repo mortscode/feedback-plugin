@@ -10,19 +10,12 @@
 
 namespace mortscode\feedback\migrations;
 
-use craft\elements\Entry;
-use craft\errors\ElementNotFoundException;
 use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 
 use Craft;
 use craft\db\Migration;
-use mortscode\feedback\Feedback;
-use mortscode\feedback\helpers\RatingsHelpers;
-use Throwable;
-use yii\base\Exception;
-use yii\base\ExitException;
 
 /**
  * Feedback Install Migration
@@ -71,7 +64,7 @@ class Install extends Migration
             // Refresh the db schema caches
             Craft::$app->db->schema->refresh();
             $this->insertDefaultData();
-            $this->updateEntryRatings();
+//            $this->updateEntryRatings();
         }
 
         return true;
@@ -91,7 +84,7 @@ class Install extends Migration
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         $this->removeTables();
-        $this->resetEntryRatings();
+//        $this->resetEntryRatings();
 
         return true;
     }
@@ -192,55 +185,5 @@ class Install extends Migration
     {
         // drop feedback_record tables
         $this->dropTableIfExists('{{%feedback_record}}');
-    }
-
-    /**
-     * @throws Throwable
-     * @throws ElementNotFoundException
-     * @throws Exception
-     * @throws ExitException
-     */
-    protected function resetEntryRatings(): void
-    {
-        // remove all ratings from entries
-        $entries = Entry::findAll();
-
-        foreach ($entries as $entry) {
-            if ($entry) {
-                if(isset($entry->averageRating)){
-                    $entry->setFieldValue('averageRating', 'null');
-                }
-                if(isset($entry->totalRatings)){
-                    $entry->setFieldValue('totalRatings', 0);
-                }
-                if(isset($entry->totalPending)){
-                    $entry->setFieldValue('totalPending', 0);
-                }
-
-                Craft::$app->elements->saveElement($entry, false, true, false);
-            }
-        }
-    }
-
-    /**
-     * @throws Throwable
-     * @throws ElementNotFoundException
-     * @throws Exception
-     * @throws ExitException
-     */
-    protected function updateEntryRatings(): void
-    {
-        // remove all ratings from entries
-        $entries = Entry::findAll();
-
-        foreach ($entries as $entry) {
-            if ($entry) {
-                $entry->setFieldValue('averageRating', RatingsHelpers::getAverageRating($entry->id));
-                $entry->setFieldValue('totalRatings', RatingsHelpers::getTotalRatings($entry->id));
-                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($entry->id));
-
-                Craft::$app->elements->saveElement($entry, false, true, false);
-            }
-        }
     }
 }

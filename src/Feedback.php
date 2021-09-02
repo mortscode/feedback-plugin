@@ -29,15 +29,15 @@ use Craft;
 use craft\base\Plugin;
 use craft\web\UrlManager;
 use craft\services\Elements;
-use craft\services\Fields;
 use craft\web\twig\variables\CraftVariable;
 use craft\services\Dashboard;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 
-use mortscode\feedback\fields\AverageRating;
-use mortscode\feedback\fields\TotalPending;
-use mortscode\feedback\fields\TotalRatings;
+//use craft\services\Fields;
+//use mortscode\feedback\fields\AverageRating;
+//use mortscode\feedback\fields\TotalPending;
+//use mortscode\feedback\fields\TotalRatings;
 
 use craft\events\RegisterGqlQueriesEvent;
 use craft\services\Gql;
@@ -168,17 +168,6 @@ class Feedback extends Plugin
             Elements::EVENT_REGISTER_ELEMENT_TYPES,
             function (RegisterComponentTypesEvent $event) {
                 $event->types[] = FeedbackElement::class;
-            }
-        );
-
-        // Register our fields
-        Event::on(
-            Fields::class,
-            Fields::EVENT_REGISTER_FIELD_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-                $event->types[] = AverageRating::class;
-                $event->types[] = TotalRatings::class;
-                $event->types[] = TotalPending::class;
             }
         );
 
