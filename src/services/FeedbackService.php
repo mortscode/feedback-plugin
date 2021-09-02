@@ -22,6 +22,7 @@ use Craft;
 use craft\base\Component;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\helpers\EmailHelpers;
+use mortscode\feedback\models\ReviewStatsModel;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\helpers\RatingsHelpers;
 use Throwable;
@@ -73,6 +74,19 @@ class FeedbackService extends Component
     public function getFeedbackById($feedbackId): ?FeedbackElement
     {
         return FeedbackElement::findOne($feedbackId);
+    }
+
+    /**
+     * @param $entryId
+     * @return ReviewStatsModel
+     */
+    public function getEntryReviewStats($entryId): ReviewStatsModel
+    {
+        $reviewStats = new ReviewStatsModel();
+        $reviewStats->averageRating = RatingsHelpers::getAverageRating($entryId);
+        $reviewStats->totalRatings = RatingsHelpers::getTotalRatings($entryId);
+
+        return $reviewStats;
     }
 
     /**
