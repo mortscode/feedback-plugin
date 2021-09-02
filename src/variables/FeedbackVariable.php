@@ -11,9 +11,12 @@
 namespace mortscode\feedback\variables;
 
 
+use craft\fields\Number;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\Feedback;
+use mortscode\feedback\models\ReviewStatsModel;
+use PhpParser\Node\Expr\Cast\Int_;
 
 
 /**
@@ -53,6 +56,15 @@ class FeedbackVariable
     public function getFeedbackById($feedbackId): FeedbackElement
     {
         return Feedback::$plugin->feedbackService->getFeedbackById($feedbackId);
+    }
+
+    /**
+     * @param $entryId
+     * @return ReviewStatsModel
+     */
+    public function getEntryReviewStats($entryId): ReviewStatsModel
+    {
+        return Feedback::$plugin->feedbackService->getEntryReviewStats($entryId);
     }
 
     /**
