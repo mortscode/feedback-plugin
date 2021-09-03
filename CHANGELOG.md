@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.18 - 2021-09-03
+### Added
+- Field in settings where a GQL token can be saved for feedback load more
+
 ## 1.0.17 - 2021-09-02
 ### Fixed
 - Fixed issue where feedback search indexes where hung up on emojis

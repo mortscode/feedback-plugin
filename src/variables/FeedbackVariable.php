@@ -130,6 +130,16 @@ class FeedbackVariable
     }
 
     /**
+     * getGraphQlToken
+     *
+     * @return string
+     */
+    public function getGraphQlToken(): string
+    {
+        return Feedback::$plugin->feedbackService->getGraphQlToken();
+    }
+
+    /**
      * updateSelectedFeedback()
      * Update array of feedback items' status
      *
