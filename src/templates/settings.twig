@@ -53,6 +53,15 @@
 }) }}
 
 {{ forms.autosuggestField({
+    label: 'GraphQL Token',
+    id: 'graphQlToken',
+    name: 'graphQlToken',
+    value: settings.graphQlToken,
+    suggestEnvVars: true,
+    size: 50
+}) }}
+
+{{ forms.autosuggestField({
     label: 'Email Header Image Url',
     instructions: 'The url to a header image for your feedback emails',
     id: 'emailHeaderUrl',

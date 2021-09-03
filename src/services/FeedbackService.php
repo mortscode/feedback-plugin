@@ -180,13 +180,22 @@ class FeedbackService extends Component
     }
 
     /**
+     * getGraphQltoken
+     *
+     * @return string
+     */
+    public function getGraphQlToken(): string
+    {
+        return Feedback::$plugin->getSettings()->graphQlToken;
+    }
+
+    /**
      * Update selected feedback statuses
      *
      * @param array $feedbackItems
      * @param string $status
      * @return bool
      * @throws \yii\db\Exception
-     * @throws InvalidConfigException
      */
     public function updateSelectedFeedback(array $feedbackItems, string $status): bool
     {

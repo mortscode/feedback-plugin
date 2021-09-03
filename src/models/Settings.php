@@ -70,6 +70,13 @@ class Settings extends Model
      */
     public $feedbackSections = [];
 
+    /**
+     * GraphQL Token
+     *
+     * @var string
+     */
+    public $graphQlToken = null;
+
     // Public Methods
     // =========================================================================
 
