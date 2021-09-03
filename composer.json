@@ -2,7 +2,7 @@
     "name": "mortscode/feedback",
     "description": "A Craft plugin for user reviews and questions",
     "type": "craft-plugin",
-    "version": "1.0.16",
+    "version": "1.0.17",
     "keywords": [
         "craft",
         "cms",

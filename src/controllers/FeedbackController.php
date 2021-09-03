@@ -328,7 +328,6 @@ class FeedbackController extends Controller
 
             // clean up html from text
             $formattedMessage = strip_tags($comment['message']);
-            $formattedMessage = LitEmoji::shortcodeToUnicode($formattedMessage);
             $formattedMessage = htmlspecialchars_decode($formattedMessage);
         
             $newComment = [

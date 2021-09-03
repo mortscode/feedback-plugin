@@ -328,6 +328,7 @@ class FeedbackElement extends Element
                 } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
                     return $this->entryId;
                 }
+                break;
             case 'hasResponse':
                 $vars = [
                   'response' => $this->response
@@ -338,6 +339,7 @@ class FeedbackElement extends Element
                 } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
                     Craft::error('No response on this element');
                 }
+                break;
         }
 
         return parent::tableAttributeHtml($attribute);
@@ -368,13 +370,27 @@ class FeedbackElement extends Element
 
     // SEARCHABLE DATA
     // ------------------------------------
+    /**
+     * @param string $attribute
+     * @return string
+     */
+    protected function searchKeywords(string $attribute): string
+    {
+        $keywords = parent::searchKeywords($attribute);
+
+        if ($attribute == 'comment') {
+            $keywords = LitEmoji::shortcodeToUnicode($attribute);
+        }
+
+        return $keywords;
+    }
 
     /**
      * @return string[]
      */
     protected static function defineSearchableAttributes(): array
     {
-        return ['name', 'comment', 'email', 'entryTitle'];
+        return ['name', 'entryTitle'];
     }
 
     /**
@@ -506,11 +522,18 @@ class FeedbackElement extends Element
 
     // GraphQl
     // ------------------------------------
+    /**
+     * @param mixed $context
+     * @return string
+     */
     public static function gqlTypeNameByContext($context): string
     {
         return 'Feedback';
     }
 
+    /**
+     * @return string
+     */
     public function getGqlTypeName(): string
     {
         return static::gqlTypeNameByContext($this);
