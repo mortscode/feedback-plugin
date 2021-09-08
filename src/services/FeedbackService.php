@@ -147,7 +147,7 @@ class FeedbackService extends Component
     {
         $location = @json_decode(file_get_contents("https://ipinfo.io/{$ip}/json"), true);
 
-        if ($location['bogon']) {
+        if (isset($location['bogon'])) {
             return [];
         }
 
