@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.20 - 2021-09-09
+### Added
+- Added "comment" to feedback element table
+- Updated icon svg to remove white bg
+
 ## 1.0.19 - 2021-09-08
 ### Fixed
 - Fixed issue where `getLocationByIp` wasn't using `isset()`

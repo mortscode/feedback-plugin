@@ -295,6 +295,7 @@ class FeedbackElement extends Element
             'hasResponse' => 'Response',
             'dateCreated' => 'Created',
             'dateUpdated' => 'Updated',
+            'comment' => 'Comment'
         ];
     }
 
@@ -338,6 +339,17 @@ class FeedbackElement extends Element
                     return Craft::$app->getView()->renderTemplate('feedback/_elements/has-response', $vars);
                 } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
                     Craft::error('No response on this element');
+                }
+                break;
+            case 'comment':
+                $vars = [
+                    'comment' => $this->comment
+                ];
+
+                try {
+                    return Craft::$app->getView()->renderTemplate('feedback/_elements/table-comment', $vars);
+                } catch (LoaderError | RuntimeError | SyntaxError | \yii\base\Exception $e) {
+                    Craft::error('No comment on this element');
                 }
                 break;
         }
