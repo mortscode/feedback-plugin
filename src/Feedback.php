@@ -122,7 +122,8 @@ class Feedback extends Plugin
 
         Craft::$app->getView()->hook('cp.entries.edit.details', function(array $context) {
 
-            $entry = $context['entry'];
+            $entryId = $context['entryId'];
+            $entryHandle = $context['sectionHandle'];
 
             $settings = self::$plugin->getSettings();
 
@@ -131,12 +132,12 @@ class Feedback extends Plugin
                 $selectedSections[] = $section;
             }
 
-            $sectionIsSelected = in_array((string)$entry->section->handle, $selectedSections, true);
+            $sectionIsSelected = in_array((string)$entryHandle, $selectedSections, true);
 
             if ($sectionIsSelected) {
 
-                $reviewUrl = '/admin/feedback/create/' . FeedbackType::Review . '/' . $entry->id;
-                $questionUrl = '/admin/feedback/create/' . FeedbackType::Question . '/' . $entry->id;
+                $reviewUrl = '/admin/feedback/create/' . FeedbackType::Review . '/' . $entryId;
+                $questionUrl = '/admin/feedback/create/' . FeedbackType::Question . '/' . $entryId;
 
                 return '<div class="flex"><a href="' . $reviewUrl . '" class="btn secondary">Add Review</a><a href="' . $questionUrl . '" class="btn secondary">Add Question</a></div>';
             }
