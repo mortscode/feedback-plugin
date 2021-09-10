@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.21 - 2021-09-09
+### Fixed
+- Fixed issue where entryId was incorrect on the entry->createFeedback buttons
+
 ## 1.0.20 - 2021-09-09
 ### Added
 - Added "comment" to feedback element table
