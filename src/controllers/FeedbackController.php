@@ -16,7 +16,6 @@ use craft\errors\MissingComponentException;
 use craft\web\Request;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
-use LitEmoji\LitEmoji;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackType;
@@ -25,6 +24,7 @@ use mortscode\feedback\helpers\RequestHelpers;
 
 use Craft;
 use craft\web\Controller;
+use Psy\Util\Json;
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
@@ -84,16 +84,14 @@ class FeedbackController extends Controller
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
 
-        if (!RequestHelpers::isCpRequest()) {
+        if (isset(Feedback::$plugin->settings->recaptchaSiteKey) && !RequestHelpers::isCpRequest()) {
 
             // first, validate the Recaptcha success
-            $validRecaptcha = $this->_verifyRecaptcha();
+            $recaptchaBody = $this->_getRecaptchaBody();
 
-            if (!$validRecaptcha) {
+            if (!$recaptchaBody['success']) {
                 // error if ReCaptcha fails
-                Craft::$app->getSession()->setError('Sorry, there was a problem validating the feedback. Please try again.');
-
-                return null;
+                return $this->asErrorJson('There was a problem validating the user.');
             }
         }
 
@@ -116,7 +114,7 @@ class FeedbackController extends Controller
                     ]);
                 }
 
-                $this->setFailFlash(Craft::t('app', 'Couldn’t save feedback.'));
+                $this->setFailFlash(Craft::t('app', 'Couldn\'t save feedback.'));
 
                 return null;
             }
@@ -547,47 +545,33 @@ class FeedbackController extends Controller
     }
 
     /**
-     * _verifyRecaptcha
+     * _getRecaptchaBody
      * Return the 'success' value back from Recaptcha on post request
      * If no CP value in the "Recaptcha Secret Key" setting, return true
      *
-     * @return bool
+     * @return mixed
      * @throws GuzzleException
      */
-    private function _verifyRecaptcha(): bool
+    private function _getRecaptchaBody()
     {
-        $request = Craft::$app->getRequest();
+        $request = Craft::$app->request->post();
+        $userIp = Craft::$app->request->getUserIP();
+        $client = new Client();
+        $secret = Feedback::$plugin->getSettings()->recaptchaSecretKey;
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
 
-        if (RequestHelpers::isCpRequest()) {
-            return true;
-        }
-
-        $settings = Feedback::$plugin->getSettings();
-
-        // if user has entered recaptcha keys, verify request
-        if ($settings->recaptchaSecretKey) {
-
-            $recaptchaSecret = Craft::parseEnv($settings->recaptchaSecretKey);
-
-            $recaptchaToken = $request->getParam('token');
-
-            $url = 'https://www.google.com/recaptcha/api/siteverify';
-
-            $client = new Client();
-
-            $response = $client->post($url, [
-                'form_params' => [
-                    'secret'   => $recaptchaSecret,
-                    'response' => $recaptchaToken,
-                    'remoteip' => $request->getUserIP(),
-                ],
+        if (array_key_exists('token', $request)) {
+            $response = $client->request('POST', $url, [
+                'query' => [
+                    'secret' => $secret,
+                    'response' => $request['token'],
+                    'remoteip' => $userIp,
+                ]
             ]);
-
-            $result = json_decode((string)$response->getBody(), true);
-
-            return $result['success'];
+//            return $response->getBody();
+            return json_decode((string)$response->getBody(), true);
+        } else {
+            return $this->asErrorJson('There was no response key attached to the request, as provided by the front-end script. We can not continue without this key.');
         }
-
-        return true;
     }
 }
