@@ -249,32 +249,43 @@ class FeedbackElement extends Element
     {
         return [
             [
-                'key' => '*',
-                'label' => 'All Feedback',
-                'criteria' => []
+                'key' => 'approved',
+                'label' => 'Approved',
+                'criteria' => [
+                    'feedbackStatus' => FeedbackStatus::Approved,
+                ]
             ],
             [
-                'key' => 'allPending',
-                'label' => 'All Pending',
+                'key' => 'pending',
+                'label' => 'Pending',
                 'badgeCount' => (new FeedbackElement)->getTotalPendingCount(),
                 'criteria' => [
                     'feedbackStatus' => FeedbackStatus::Pending,
                 ]
             ],
             [
-                'key' => 'reviews',
-                'label' => 'Reviews',
-                'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Review),
+                'key' => 'spam',
+                'label' => 'Spam',
                 'criteria' => [
-                    'feedbackType' => FeedbackType::Review,
+                    'feedbackStatus' => FeedbackStatus::Spam,
                 ]
             ],
             [
-                'key' => 'questions',
-                'label' => 'Questions',
+                'key' => 'allReviews',
+                'label' => 'All Reviews',
+                'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Review),
+                'criteria' => [
+                    'feedbackType' => FeedbackType::Review,
+                    'feedbackStatus' => [FeedbackStatus::Approved, FeedbackStatus::Pending],
+                ]
+            ],
+            [
+                'key' => 'allQuestions',
+                'label' => 'All Questions',
                 'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Question),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Question,
+                    'feedbackStatus' => [FeedbackStatus::Approved, FeedbackStatus::Pending],
                 ]
             ],
         ];
@@ -295,7 +306,8 @@ class FeedbackElement extends Element
             'hasResponse' => 'Response',
             'dateCreated' => 'Created',
             'dateUpdated' => 'Updated',
-            'comment' => 'Comment'
+            'comment' => 'Comment',
+            'feedbackType' => 'Type',
         ];
     }
 
@@ -352,6 +364,8 @@ class FeedbackElement extends Element
                     Craft::error('No comment on this element');
                 }
                 break;
+            case 'feedbackType':
+                return ucfirst($this->feedbackType);
         }
 
         return parent::tableAttributeHtml($attribute);
