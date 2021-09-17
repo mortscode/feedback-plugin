@@ -134,7 +134,7 @@ class Feedback extends Plugin
                 $reviewUrl = '/admin/feedback/create/' . FeedbackType::Review . '/' . $entryId;
                 $questionUrl = '/admin/feedback/create/' . FeedbackType::Question . '/' . $entryId;
 
-                return '<div class="flex"><a href="' . $reviewUrl . '" class="btn secondary">Add Review</a><a href="' . $questionUrl . '" class="btn secondary">Add Question</a></div>';
+                return '<hr/><div class="meta" style="padding: 24px 24px 18px"><h2 class="heading">Add Feedback</h2><div class="flex"><a href="' . $reviewUrl . '" class="btn secondary">Add Review</a><a href="' . $questionUrl . '" class="btn secondary">Add Question</a></div></div>';
             }
 
         });

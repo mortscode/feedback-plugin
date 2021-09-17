@@ -7,10 +7,22 @@
 
 {% set entry = craft.entries.id(entryId).one() %}
 {% set feedback = craft.feedback.getFeedbackById(feedbackId) %}
+{% set frontEndReview = feedback.feedbackOrigin == 'origin_frontend' and feedback.feedbackType == 'review' %}
 {% set convertButtonText = feedback.feedbackType == 'review'
 	? 'Convert to Question'
 	: 'Convert to 5-Star Review'
 %}
+
+{% switch feedback.feedbackOrigin %}
+	{% case 'origin_cp' %}
+		{% set originLabel = 'Control Panel' %}
+	{% case 'origin_frontend' %}
+		{% set originLabel = 'Frontend' %}
+	{% case 'origin_disqus' %}
+		{% set originLabel = 'Disqus Import' %}
+	{% default %}
+		{% set originLabel = feedback.feedbackOrigin %}
+{% endswitch %}
 
 {% if feedback.ipAddress %}
 	{% set location = craft.feedback.getLocationByIp(feedback.ipAddress) %}
@@ -46,6 +58,16 @@
 			value: feedback.feedbackStatus ?? null
 		}) }}
 	</div>
+	{% if not frontEndReview %}
+	<hr/>
+	<div class="meta" style="padding: 24px 24px 18px">
+		<h2 class="heading">Change Feedback Type</h2>
+		<div class="flex">
+			<a href="{{ actionUrl('feedback/feedback/convert-feedback', { feedbackId: feedback.id }) }}" class="btn secondary">{{ convertButtonText }}</a>
+		</div>
+	</div>
+	{% endif %}
+	<hr/>
 	<div class="meta read-only">
 		<div class="data">
 			<h5 class="heading">Type:</h5>
@@ -59,6 +81,10 @@
 			<h5 class="heading">Updated:</h5>
 			<div class="value">
 				<span class="user-agent">{{ feedback.dateUpdated|date() }}</span>
+			</div>
+			<h5 class="heading">Origin:</h5>
+			<div class="value">
+				<span class="user-agent">{{ originLabel }}</span>
 			</div>
 			<h5 class="heading">Device:</h5>
 			<div class="value">
@@ -75,11 +101,6 @@
 					<span class="user-agent">{{ feedback.ipAddress ?? 'None given' }}</span>
 				</div>
 			{% endif %}
-		</div>
-	</div>
-	<div>
-		<div class="flex">
-			<a href="{{ actionUrl('feedback/feedback/convert-feedback', { feedbackId: feedback.id }) }}" class="btn secondary">{{ convertButtonText }}</a>
 		</div>
 	</div>
 {% endblock %}

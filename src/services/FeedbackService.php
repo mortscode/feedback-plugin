@@ -201,12 +201,6 @@ class FeedbackService extends Component
         foreach ($feedbackItems as $feedback) {
             if ($feedback) {
                 $this->_updateFeedbackStatus($feedback->id, $status);
-
-//                try {
-//                    Feedback::$plugin->feedbackService->updateEntryRatings($feedback->entryId);
-//                } catch (ElementNotFoundException | Exception | Throwable $e) {
-//                    Craft::error("Error updating Entry ratings");
-//                }
             } else {
                 Craft::error("Can't update status");
             }
@@ -244,7 +238,7 @@ class FeedbackService extends Component
         ];
 
         // IF FEEDBACK IS NOT ORIGINALLY FROM THE FRONTEND, RETURN
-        if (!$feedback->feedbackOrigin == FeedbackOrigin::FRONTEND) {
+        if ($feedback->feedbackOrigin !== FeedbackOrigin::FRONTEND) {
             return;
         }
 
