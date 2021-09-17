@@ -19,6 +19,7 @@ use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
+use mortscode\feedback\helpers\CacheHelpers;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\elements\actions\SetStatus;
 use Twig\Error\LoaderError;
@@ -617,6 +618,8 @@ class FeedbackElement extends Element
         } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
             Craft::error('Unable to update entry ratings after Element Save');
         }
+
+        CacheHelpers::purgeEntriesByUrl([$this->getEntry()->url]);
 
         parent::afterSave($isNew);
     }

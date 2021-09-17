@@ -34,11 +34,6 @@ use craft\services\Dashboard;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 
-//use craft\services\Fields;
-//use mortscode\feedback\fields\AverageRating;
-//use mortscode\feedback\fields\TotalPending;
-//use mortscode\feedback\fields\TotalRatings;
-
 use craft\events\RegisterGqlQueriesEvent;
 use craft\services\Gql;
 use yii\base\Event;
@@ -208,6 +203,15 @@ class Feedback extends Plugin
                 'heading' => 'A Response from The Modern Proper',
                 'subject' => 'A Response to your feedback',
                 'body' => file_get_contents(__DIR__ . '/emails/feedback_response.md'),
+            ]);
+        });
+
+        Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, static function(RegisterEmailMessagesEvent $event) {
+            $event->messages[] = new SystemMessage([
+                'key' => FeedbackMessages::MESSAGE_FEEDBACK_APPROVED,
+                'heading' => 'Feedback Approved on The Modern Proper',
+                'subject' => 'Your feedback is LIVE!',
+                'body' => file_get_contents(__DIR__ . '/emails/feedback_approved.md'),
             ]);
         });
 

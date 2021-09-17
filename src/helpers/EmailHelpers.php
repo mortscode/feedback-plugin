@@ -4,6 +4,11 @@ namespace mortscode\feedback\helpers;
 
 
 use Craft;
+use mortscode\feedback\elements\FeedbackElement;
+use mortscode\feedback\enums\FeedbackEmail;
+use mortscode\feedback\enums\FeedbackEvents;
+use mortscode\feedback\enums\FeedbackStatus;
+use mortscode\feedback\records\FeedbackRecord;
 use yii\base\InvalidConfigException;
 
 class EmailHelpers
@@ -30,5 +35,34 @@ class EmailHelpers
         }
 
         return false;
+    }
+
+    /**
+     * @param FeedbackRecord $feedback
+     * @return string | null
+     */
+    public static function getFeedbackEvent(FeedbackRecord $feedback): ?string {
+        // NEW RESPONSE, NEW APPROVAL, OR BOTH ***
+        $feedbackNowApproved = $feedback->feedbackStatus == FeedbackStatus::Approved
+            and $feedback->oldAttributes['feedbackStatus'] !== FeedbackStatus::Approved;
+        $responseUpdated = $feedback->response !== ''
+            and $feedback->oldAttributes['response'] !== $feedback->response;
+
+        // RETURN BOTH
+        if ($feedbackNowApproved and $responseUpdated) {
+            return FeedbackEvents::ResponseAndApproved;
+        }
+
+        // RETURN NEW RESPONSE
+        if ($responseUpdated) {
+            return FeedbackEvents::NewResponse;
+        }
+
+        // RETURN NEW APPROVAL
+        if ($feedbackNowApproved) {
+            return FeedbackEvents::NewApproval;
+        }
+
+        return null;
     }
 }

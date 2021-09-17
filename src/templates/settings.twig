@@ -34,6 +34,13 @@
     first: true
 }) }}
 
+{{ forms.lightswitchField({
+    on: false,
+    label: 'Recaptcha Enabled',
+    id: 'recaptchaEnabled',
+    name: 'recaptchaEnabled',
+}) }}
+
 {{ forms.autosuggestField({
     label: 'ReCaptcha Site Key',
     id: 'recaptchaSiteKey',

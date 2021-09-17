@@ -84,7 +84,7 @@ class FeedbackController extends Controller
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
 
-        if (isset(Feedback::$plugin->settings->recaptchaSiteKey) && !RequestHelpers::isCpRequest()) {
+        if (Feedback::$plugin->settings->recaptchaEnabled && !RequestHelpers::isCpRequest()) {
 
             // first, validate the Recaptcha success
             $recaptchaBody = $this->_getRecaptchaBody();

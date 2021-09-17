@@ -13,4 +13,5 @@ abstract class FeedbackMessages
 {
     public const MESSAGE_NEW_FEEDBACK = 'new_feedback';
     public const MESSAGE_FEEDBACK_RESPONSE = 'feedback_response';
+    public const MESSAGE_FEEDBACK_APPROVED = 'feedback_approved';
 }

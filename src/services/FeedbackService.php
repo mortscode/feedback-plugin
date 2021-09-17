@@ -14,6 +14,7 @@ use craft\elements\Entry;
 use craft\errors\ElementNotFoundException;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\elements\FeedbackElement;
+use mortscode\feedback\enums\FeedbackEvents;
 use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\Feedback;
@@ -260,7 +261,7 @@ class FeedbackService extends Component
      * Determines whether or not to send email
      *
      * @param bool $isNew
-     * @param FeedbackRecord|null $feedback
+     * @param FeedbackRecord|FeedbackElement|null $feedback
      * @throws InvalidConfigException
      */
     public function handleMailDelivery(bool $isNew, ?FeedbackRecord $feedback): void
@@ -275,35 +276,31 @@ class FeedbackService extends Component
             'comment' => $feedback->comment,
             'response' => $feedback->response,
             'feedbackType' => $feedback->feedbackType,
+            'feedbackStatus' => $feedback->feedbackStatus,
             'entryId' => $feedback->entryId,
             'rating' => $feedback->rating,
         ];
 
-        // IF FEEDBACK IS NEW && FROM THE FRONTEND, SEND EMAIL
-        if ($isNew) {
-            if (!$feedback->feedbackOrigin == FeedbackOrigin::FRONTEND) {
-                return;
-            }
-
-            !EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_NEW_FEEDBACK, $emailData);
-
+        // IF FEEDBACK IS NOT ORIGINALLY FROM THE FRONTEND, RETURN
+        if (!$feedback->feedbackOrigin == FeedbackOrigin::FRONTEND) {
             return;
         }
 
-        $feedbackApproved = $feedback->feedbackStatus == FeedbackStatus::Approved;
-        $importedFeedback = $feedback->oldAttributes['feedbackOrigin'] == FeedbackOrigin::IMPORT_DISQUS;
-        $responseUpdated = $feedback->oldAttributes['response'] !== $feedback->response;
-        $approvedWithResponse = $feedback->response != null
-            && $feedback->oldAttributes['feedbackStatus'] !== FeedbackStatus::Approved
-            && $feedback == FeedbackStatus::Approved;
+        if ($isNew) {
+            // EMAIL: NEW FEEDBACK
+            !EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_NEW_FEEDBACK, $emailData);
+        } else {
+            $feedbackEvent = EmailHelpers::getFeedbackEvent($feedback);
 
-        // IF NOT IMPORTED, HAS AN EMAIL PROPERTY, AND IS APPROVED, CONSIDER EMAILING
-        if (!$importedFeedback && $feedbackApproved) {
-            // response has been updated since last save
-            // or
-            // response is newly approved and has a response
-            if ($responseUpdated || $approvedWithResponse) {
+            if (
+                $feedbackEvent == FeedbackEvents::ResponseAndApproved
+                or $feedbackEvent == FeedbackEvents::NewResponse
+            ) {
                 EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_FEEDBACK_RESPONSE, $emailData);
+            }
+
+            if ($feedbackEvent == FeedbackEvents::NewApproval) {
+                EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_FEEDBACK_APPROVED, $emailData);
             }
         }
     }
