@@ -26,7 +26,7 @@ Your {{ feedback.feedbackType }} has been APPROVED on our [{{ entry.title }}]({{
 {% endif %}
 </div>
 
-Thanks for the feedback!
+Checkout your {{ feedback.feedbackType }} on [The Modern Proper]({{ entry.url }}#feedback).
 
 ---
 

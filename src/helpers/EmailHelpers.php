@@ -53,15 +53,16 @@ class EmailHelpers
             return FeedbackEvents::ResponseAndApproved;
         }
 
+        // RETURN NEW APPROVAL
+        if ($feedbackNowApproved and !$responseUpdated) {
+            return FeedbackEvents::NewApproval;
+        }
+
         // RETURN NEW RESPONSE
         if ($responseUpdated) {
             return FeedbackEvents::NewResponse;
         }
 
-        // RETURN NEW APPROVAL
-        if ($feedbackNowApproved) {
-            return FeedbackEvents::NewApproval;
-        }
 
         return null;
     }

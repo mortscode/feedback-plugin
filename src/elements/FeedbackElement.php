@@ -613,13 +613,7 @@ class FeedbackElement extends Element
             $feedbackRecord->save(true);
         }
 
-//        try {
-//            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
-//        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
-//            Craft::error('Unable to update entry ratings after Element Save');
-//        }
-
-        CacheHelpers::purgeEntriesByUrl([$this->getEntry()->url]);
+//        CacheHelpers::purgeEntriesByUrl([$this->getEntry()->url]);
 
         parent::afterSave($isNew);
     }
@@ -631,12 +625,6 @@ class FeedbackElement extends Element
      */
     public function afterDelete(): void
     {
-//        try {
-//            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
-//        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
-//            Craft::error('Unable to update entry ratings after Element Delete');
-//        }
-
         parent::afterDelete();
     }
 }
