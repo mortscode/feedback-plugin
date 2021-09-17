@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.23 - 2021-09-17
+### Added
+- Lightswitch to turn Recaptcha on/off
+- Cache purge with every saved element
+- New email for Approved feedback
+
 ## 1.0.22 - 2021-09-15
 ### Updated
 - Updated recaptcha check to return entire response

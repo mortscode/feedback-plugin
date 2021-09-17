@@ -19,6 +19,7 @@ use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
+use mortscode\feedback\helpers\CacheHelpers;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\elements\actions\SetStatus;
 use Twig\Error\LoaderError;
@@ -612,11 +613,13 @@ class FeedbackElement extends Element
             $feedbackRecord->save(true);
         }
 
-        try {
-            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
-        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
-            Craft::error('Unable to update entry ratings after Element Save');
-        }
+//        try {
+//            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
+//        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
+//            Craft::error('Unable to update entry ratings after Element Save');
+//        }
+
+        CacheHelpers::purgeEntriesByUrl([$this->getEntry()->url]);
 
         parent::afterSave($isNew);
     }
@@ -628,11 +631,11 @@ class FeedbackElement extends Element
      */
     public function afterDelete(): void
     {
-        try {
-            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
-        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
-            Craft::error('Unable to update entry ratings after Element Delete');
-        }
+//        try {
+//            Feedback::$plugin->feedbackService->updateEntryRatings($this->entryId);
+//        } catch (ElementNotFoundException | \yii\base\Exception | \Throwable $e) {
+//            Craft::error('Unable to update entry ratings after Element Delete');
+//        }
 
         parent::afterDelete();
     }

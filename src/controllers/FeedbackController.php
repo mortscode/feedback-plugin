@@ -84,7 +84,7 @@ class FeedbackController extends Controller
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
 
-        if (isset(Feedback::$plugin->settings->recaptchaSiteKey) && !RequestHelpers::isCpRequest()) {
+        if (Feedback::$plugin->settings->recaptchaEnabled && !RequestHelpers::isCpRequest()) {
 
             // first, validate the Recaptcha success
             $recaptchaBody = $this->_getRecaptchaBody();
@@ -287,7 +287,7 @@ class FeedbackController extends Controller
         Craft::$app->getSession()->setNotice('Disqus XML imported');
 
         // Update the ratings values for all entries
-        Feedback::$plugin->feedbackService->updateAllEntryRatings();
+//        Feedback::$plugin->feedbackService->updateAllEntryRatings();
 
         // Ok, definitely valid + saved!
         return $this->redirect('feedback');

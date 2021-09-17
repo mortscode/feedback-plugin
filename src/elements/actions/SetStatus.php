@@ -80,6 +80,7 @@ class SetStatus extends ElementAction
      * @param ElementQueryInterface $query
      * @return bool
      * @throws Exception
+     * @throws \yii\base\InvalidConfigException
      */
     public function performAction(ElementQueryInterface $query): bool
     {
