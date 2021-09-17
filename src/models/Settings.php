@@ -36,21 +36,21 @@ class Settings extends Model
     // =========================================================================
 
     /**
-     * ReCapcha Enabled
+     * ReCaptcha Enabled
      *
      * @var bool
      */
     public $recaptchaEnabled = false;
 
     /**
-     * ReCapcha Site Key
+     * ReCaptcha Site Key
      *
      * @var string
      */
     public $recaptchaSiteKey = null;
 
     /**
-     * ReCapcha Secret Key
+     * ReCaptcha Secret Key
      *
      * @var string
      */
