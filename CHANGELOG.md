@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.26 - 2021-09-17
+### Updated
+- Styled entry and feedback detail button containers
+- Updated email delivery conditional for non-frontend feedback
+- Cleaned up some lingering commented-out code
+
 ## 1.0.25 - 2021-09-17
 ### Removed
 - Removed servd cache bust from `AfterSave()` method on FeedbackElement

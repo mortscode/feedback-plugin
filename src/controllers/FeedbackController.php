@@ -287,7 +287,7 @@ class FeedbackController extends Controller
         Craft::$app->getSession()->setNotice('Disqus XML imported');
 
         // Update the ratings values for all entries
-//        Feedback::$plugin->feedbackService->updateAllEntryRatings();
+        // Feedback::$plugin->feedbackService->updateAllEntryRatings();
 
         // Ok, definitely valid + saved!
         return $this->redirect('feedback');
@@ -350,7 +350,6 @@ class FeedbackController extends Controller
      *
      * @param mixed $threads
      * @return array
-     * @throws ExitException
      */
     private function _convertThreads(array $threads): array
     {
