@@ -215,42 +215,6 @@ class FeedbackService extends Component
         return true;
     }
 
-//    /**
-//     * Update single entry rating by id
-//     *
-//     * @param int|null $entryId
-//     * @return void
-//     * @throws ElementNotFoundException
-//     * @throws Exception
-//     * @throws Throwable
-//     */
-//    public function updateEntryRatings(?int $entryId): void
-//    {
-//        if (!$entryId) {
-//            return;
-//        }
-//
-//        $entry = Entry::findOne($entryId);
-//        $hasAverageRating = isset($entry->averageRating);
-//        $hasTotalRatings = isset($entry->totalRatings);
-//        $hasTotalPending = isset($entry->totalPending);
-//
-//        if ($entry) {
-//            if ($hasAverageRating) {
-//                $entry->setFieldValue('averageRating', RatingsHelpers::getAverageRating($entryId));
-//            }
-//            if ($hasTotalRatings) {
-//                $entry->setFieldValue('totalRatings', RatingsHelpers::getTotalRatings($entryId));
-//            }
-//            if ($hasTotalPending) {
-//                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($entryId));
-//            }
-//            if ($hasAverageRating || $hasTotalPending || $hasTotalRatings) {
-//                Craft::$app->elements->saveElement($entry, false, true, false);
-//            }
-//        }
-//    }
-
     /**
      * handleMailDelivery
      *
@@ -303,23 +267,6 @@ class FeedbackService extends Component
         }
     }
 
-//    /**
-//     * Update all entry ratings
-//     *
-//     * @return void
-//     * @throws ElementNotFoundException
-//     * @throws Exception
-//     * @throws Throwable
-//     */
-//    public function updateAllEntryRatings(): void
-//    {
-//        $entries = Entry::findAll();
-//
-//        foreach ($entries as $entry) {
-//            $this->updateEntryRatings($entry->id);
-//        }
-//    }
-
 
     // PRIVATE METHODS ==================================
     // ==================================================
@@ -341,16 +288,4 @@ class FeedbackService extends Component
             ->update('{{%feedback_record}}', ['feedbackStatus' => $status], ['id' => $elementId])
             ->execute();
     }
-
-//    private function _purgeEntryUrls(array $entryIds): void
-//    {
-//        $urls = [];
-//
-//        foreach ($entryIds as $entryId) {
-//            $entryUrl = Entry::findOne($entryId)->getUrl();
-//            $urls = $entryUrl;
-//        }
-//
-//        CacheHelpers::purgeEntriesByUrl($urls);
-//    }
 }

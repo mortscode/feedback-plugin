@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.25 - 2021-09-17
+### Removed
+- Removed servd cache bust from `AfterSave()` method on FeedbackElement
+- Removed commented out refs to field-based feedback stats
+
 ## 1.0.24 - 2021-09-17
 ### Fixed
 - Fixed issue where RecaptchaEnabled lightswitch wasn't working correctly
