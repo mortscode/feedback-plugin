@@ -10,8 +10,6 @@
 
 namespace mortscode\feedback\services;
 
-use craft\elements\Entry;
-use craft\errors\ElementNotFoundException;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackEvents;
@@ -26,9 +24,8 @@ use mortscode\feedback\helpers\EmailHelpers;
 use mortscode\feedback\models\ReviewStatsModel;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\helpers\RatingsHelpers;
-use Throwable;
-use yii\base\Exception;
 use yii\base\InvalidConfigException;
+use yii\db\Exception;
 
 /**
  * FeedbackService Service
@@ -46,6 +43,7 @@ use yii\base\InvalidConfigException;
  * @property-read null|String $recaptchaKey
  * @property-read null|String $emailHeaderUrl
  * @property-read int $totalPendingFeedback
+ * @property-read string $graphQlToken
  * @property-read array $statusValues
  */
 class FeedbackService extends Component
@@ -146,7 +144,7 @@ class FeedbackService extends Component
      */
     public function getLocationByIp(string $ip): ?array
     {
-        $location = @json_decode(file_get_contents("https://ipinfo.io/{$ip}/json"), true);
+        $location = @json_decode(file_get_contents("https://ipinfo.io/". $ip. "/json"), true);
 
         if (isset($location['bogon'])) {
             return [];
@@ -181,7 +179,7 @@ class FeedbackService extends Component
     }
 
     /**
-     * getGraphQltoken
+     * getGraphQlToken
      *
      * @return string
      */
@@ -196,7 +194,7 @@ class FeedbackService extends Component
      * @param array $feedbackItems
      * @param string $status
      * @return bool
-     * @throws \yii\db\Exception
+     * @throws Exception
      */
     public function updateSelectedFeedback(array $feedbackItems, string $status): bool
     {
@@ -204,11 +202,11 @@ class FeedbackService extends Component
             if ($feedback) {
                 $this->_updateFeedbackStatus($feedback->id, $status);
 
-                try {
-                    Feedback::$plugin->feedbackService->updateEntryRatings($feedback->entryId);
-                } catch (ElementNotFoundException | Exception | Throwable $e) {
-                    Craft::error("Error updating Entry ratings");
-                }
+//                try {
+//                    Feedback::$plugin->feedbackService->updateEntryRatings($feedback->entryId);
+//                } catch (ElementNotFoundException | Exception | Throwable $e) {
+//                    Craft::error("Error updating Entry ratings");
+//                }
             } else {
                 Craft::error("Can't update status");
             }
@@ -217,48 +215,48 @@ class FeedbackService extends Component
         return true;
     }
 
-    /**
-     * Update single entry rating by id
-     *
-     * @param int|null $entryId
-     * @return void
-     * @throws ElementNotFoundException
-     * @throws Exception
-     * @throws Throwable
-     */
-    public function updateEntryRatings(?int $entryId): void
-    {
-        if (!$entryId) {
-            return;
-        }
-
-        $entry = Entry::findOne($entryId);
-        $hasAverageRating = isset($entry->averageRating);
-        $hasTotalRatings = isset($entry->totalRatings);
-        $hasTotalPending = isset($entry->totalPending);
-
-        if ($entry) {
-            if ($hasAverageRating) {
-                $entry->setFieldValue('averageRating', RatingsHelpers::getAverageRating($entryId));
-            }
-            if ($hasTotalRatings) {
-                $entry->setFieldValue('totalRatings', RatingsHelpers::getTotalRatings($entryId));
-            }
-            if ($hasTotalPending) {
-                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($entryId));
-            }
-            if ($hasAverageRating || $hasTotalPending || $hasTotalRatings) {
-                Craft::$app->elements->saveElement($entry, false, true, false);
-            }
-        }
-    }
+//    /**
+//     * Update single entry rating by id
+//     *
+//     * @param int|null $entryId
+//     * @return void
+//     * @throws ElementNotFoundException
+//     * @throws Exception
+//     * @throws Throwable
+//     */
+//    public function updateEntryRatings(?int $entryId): void
+//    {
+//        if (!$entryId) {
+//            return;
+//        }
+//
+//        $entry = Entry::findOne($entryId);
+//        $hasAverageRating = isset($entry->averageRating);
+//        $hasTotalRatings = isset($entry->totalRatings);
+//        $hasTotalPending = isset($entry->totalPending);
+//
+//        if ($entry) {
+//            if ($hasAverageRating) {
+//                $entry->setFieldValue('averageRating', RatingsHelpers::getAverageRating($entryId));
+//            }
+//            if ($hasTotalRatings) {
+//                $entry->setFieldValue('totalRatings', RatingsHelpers::getTotalRatings($entryId));
+//            }
+//            if ($hasTotalPending) {
+//                $entry->setFieldValue('totalPending', RatingsHelpers::getTotalPending($entryId));
+//            }
+//            if ($hasAverageRating || $hasTotalPending || $hasTotalRatings) {
+//                Craft::$app->elements->saveElement($entry, false, true, false);
+//            }
+//        }
+//    }
 
     /**
      * handleMailDelivery
      *
      * Takes in original feedback record, if it exists
      * Compares its values to the updated feedback element
-     * Determines whether or not to send email
+     * Determines whether to send email
      *
      * @param bool $isNew
      * @param FeedbackRecord|FeedbackElement|null $feedback
@@ -305,22 +303,22 @@ class FeedbackService extends Component
         }
     }
 
-    /**
-     * Update all entry ratings
-     *
-     * @return void
-     * @throws ElementNotFoundException
-     * @throws Exception
-     * @throws Throwable
-     */
-    public function updateAllEntryRatings(): void
-    {
-        $entries = Entry::findAll();
-
-        foreach ($entries as $entry) {
-            $this->updateEntryRatings($entry->id);
-        }
-    }
+//    /**
+//     * Update all entry ratings
+//     *
+//     * @return void
+//     * @throws ElementNotFoundException
+//     * @throws Exception
+//     * @throws Throwable
+//     */
+//    public function updateAllEntryRatings(): void
+//    {
+//        $entries = Entry::findAll();
+//
+//        foreach ($entries as $entry) {
+//            $this->updateEntryRatings($entry->id);
+//        }
+//    }
 
 
     // PRIVATE METHODS ==================================
@@ -331,7 +329,7 @@ class FeedbackService extends Component
      * @param int $elementId
      * @param string $status
      * @return void
-     * @throws \yii\db\Exception
+     * @throws Exception
      */
     private function _updateFeedbackStatus(int $elementId, string $status): void
     {
@@ -343,4 +341,16 @@ class FeedbackService extends Component
             ->update('{{%feedback_record}}', ['feedbackStatus' => $status], ['id' => $elementId])
             ->execute();
     }
+
+//    private function _purgeEntryUrls(array $entryIds): void
+//    {
+//        $urls = [];
+//
+//        foreach ($entryIds as $entryId) {
+//            $entryUrl = Entry::findOne($entryId)->getUrl();
+//            $urls = $entryUrl;
+//        }
+//
+//        CacheHelpers::purgeEntriesByUrl($urls);
+//    }
 }
