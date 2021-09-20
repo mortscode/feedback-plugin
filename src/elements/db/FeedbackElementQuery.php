@@ -12,6 +12,7 @@ class FeedbackElementQuery extends ElementQuery
     public $name;
     public $email;
     public $comment;
+    public $hasComment;
     public $rating;
     public $response;
     public $feedbackType;
@@ -41,6 +42,18 @@ class FeedbackElementQuery extends ElementQuery
     public function comment($value): FeedbackElementQuery
     {
         $this->comment = $value;
+
+        if ($value !== ":empty:") {
+            $this->hasComment = true;
+        }
+
+        return $this;
+    }
+
+    public function hasComment($value): FeedbackElementQuery
+    {
+        $this->hasComment = $value;
+
         return $this;
     }
 
@@ -105,6 +118,20 @@ class FeedbackElementQuery extends ElementQuery
             'feedback_record.ipAddress',
             'feedback_record.userAgent',
         ]);
+
+        if (!is_null($this->hasComment)) {
+            // Ok, a `true` value means one thing...
+            if ($this->hasComment === true) {
+                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':notempty:'));
+            }
+
+            // ...and a false value means another...
+            if ($this->hasComment === false) {
+                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':empty:'));
+            }
+
+            // ...and `null` wouldn't even have a constraint applied!
+        }
 
         if ($this->entryId) {
             $this->subQuery->andWhere(Db::parseParam(

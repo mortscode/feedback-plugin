@@ -32,7 +32,7 @@ class FeedbackInterface extends ElementInterface
         $type = GqlEntityRegistry::createEntity(self::getName(), new InterfaceType([
             'name' => static::getName(),
             'fields' => self::class . '::getFieldDefinitions',
-            'description' => 'This is the interface implemented by all widgets.',
+            'description' => 'This is the interface implemented by all feedback.',
             'resolveType' => self::class . '::resolveElementTypeName',
         ]));
 
@@ -43,7 +43,6 @@ class FeedbackInterface extends ElementInterface
 
     public static function getFieldDefinitions(): array
     {
-        // Add our custom widget’s field to common ones for all elements
         return TypeManager::prepareFieldDefinitions(array_merge(
             parent::getFieldDefinitions(),
             [
@@ -67,6 +66,11 @@ class FeedbackInterface extends ElementInterface
                     'type' => Type::string(),
                     'description' => 'The actual comment text.'
                 ],
+                'hasComment' => [
+                    'name' => 'hasComment',
+                    'type' => Type::boolean(),
+                    'description' => 'The comment field is not empty.'
+                ],
                 'response' => [
                     'name' => 'response',
                     'type' => Type::string(),
@@ -81,7 +85,7 @@ class FeedbackInterface extends ElementInterface
                     'name' => 'feedbackStatus',
                     'type' => Type::string(),
                     'description' => 'The status of the feedback [approved, pending, spam]'
-                ],
+                ]
             ]
         ), self::getName());
     }
