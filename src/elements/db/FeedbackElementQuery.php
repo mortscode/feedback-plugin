@@ -2,7 +2,6 @@
 
 namespace mortscode\feedback\elements\db;
 
-use Craft;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 use mortscode\feedback\enums\FeedbackStatus;
