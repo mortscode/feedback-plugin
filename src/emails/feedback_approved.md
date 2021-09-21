@@ -9,7 +9,7 @@
 
 ### Hey {{ feedback.name ? feedback.name | split(' ')[0] : 'friend' }},
 
-Your {{ feedback.feedbackType }} has been APPROVED on our [{{ entry.title }}]({{ entry.url }}) page:
+Your {{ feedback.feedbackType }} has been approved on our [{{ entry.title }}]({{ entry.url }}) page:
 
 <div style="background-color:#F7F6F2;color:#222222;padding:18px">
 {% if feedback.rating %}
@@ -28,7 +28,7 @@ Your {{ feedback.feedbackType }} has been APPROVED on our [{{ entry.title }}]({{
 {% endif %}
 </div>
 
-Checkout your {{ feedback.feedbackType }} on [The Modern Proper]({{ entry.url }}#feedback).
+Check out your {{ feedback.feedbackType }} on [The Modern Proper]({{ entry.url }}#feedback).
 
 ---
 

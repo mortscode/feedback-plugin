@@ -29,7 +29,7 @@ There is a new response to your {{ feedback.feedbackType }} on our [{{ entry.tit
 {% endif %}
 
 {% if feedback.feedbackStatus == 'approved' %}
-Checkout your {{ feedback.feedbackType }} on [The Modern Proper]({{ entry.url }}#feedback).
+Check out your {{ feedback.feedbackType }} on [The Modern Proper]({{ entry.url }}#feedback).
 {% else %}
 Your comment is pending, so you won't see it on the site.
 {% endif %}
