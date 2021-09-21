@@ -136,7 +136,6 @@ class Feedback extends Plugin
 
                 return '<hr/><div class="meta" style="padding: 24px 24px 18px"><h2 class="heading">Add Feedback</h2><div class="flex"><a href="' . $reviewUrl . '" class="btn secondary">Add Review</a><a href="' . $questionUrl . '" class="btn secondary">Add Question</a></div></div>';
             }
-
         });
 
         // Register our site routes
