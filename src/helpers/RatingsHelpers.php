@@ -18,12 +18,10 @@ class RatingsHelpers
      */
     public static function getAverageRating(int $entryId): float {
         $average = FeedbackElement::find()
-            ->where([
-                'entryId' => $entryId,
-                'feedbackStatus' => FeedbackStatus::Approved,
-                'feedbackType' => FeedbackType::Review,
-            ])
-            ->andWhere(['not', ['rating' => null]])
+            ->entryId($entryId)
+            ->feedbackStatus(FeedbackStatus::Approved)
+            ->feedbackType(FeedbackType::Review)
+            ->rating(':notempty:')
             ->average('rating');
 
         return round($average, 1);
@@ -31,21 +29,17 @@ class RatingsHelpers
 
     public static function getTotalRatings(int $entryId): int {
         return FeedbackElement::find()
-            ->where([
-                'entryId' => $entryId,
-                'feedbackStatus' => FeedbackStatus::Approved,
-                'feedbackType' => FeedbackType::Review,
-            ])
-            ->andWhere(['not', ['rating' => null]])
+            ->entryId($entryId)
+            ->feedbackStatus(FeedbackStatus::Approved)
+            ->feedbackType(FeedbackType::Review)
+            ->rating(':notempty:')
             ->count();
     }
 
     public static function getTotalPending(int $entryId): int {
         return FeedbackElement::find()
-            ->where([
-                'entryId' => $entryId,
-                'feedbackStatus' => FeedbackStatus::Pending,
-            ])
+            ->entryId($entryId)
+            ->feedbackStatus(FeedbackStatus::Pending)
             ->count();
     }
 }

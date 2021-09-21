@@ -23,9 +23,9 @@ There is a new response to your {{ feedback.feedbackType }} on our [{{ entry.tit
 {{ feedback.response }}</p>
 {% else %}
 <p><span style="font-weight: bold">Comment:</span></br>
-<p>{{ feedback.comment }}</p>
+{{ feedback.comment }}</p>
 <p><span style="font-weight: bold">Response:</span></br>
-<p>{{ feedback.response }}</p>
+{{ feedback.response }}</p>
 {% endif %}
 </div>
 

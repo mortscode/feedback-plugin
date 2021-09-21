@@ -2,6 +2,7 @@
 
 namespace mortscode\feedback\elements\db;
 
+use Craft;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 use mortscode\feedback\enums\FeedbackStatus;
@@ -12,6 +13,7 @@ class FeedbackElementQuery extends ElementQuery
     public $name;
     public $email;
     public $comment;
+    public $hasComment;
     public $rating;
     public $response;
     public $feedbackType;
@@ -19,6 +21,11 @@ class FeedbackElementQuery extends ElementQuery
     public $feedbackOrigin;
     public $ipAddress;
     public $userAgent;
+
+    /**
+     * @inheritdoc
+     */
+    protected $defaultOrderBy = ['feedback_record.dateCreated' => SORT_DESC];
 
     public function entryId($value): FeedbackElementQuery
     {
@@ -41,6 +48,14 @@ class FeedbackElementQuery extends ElementQuery
     public function comment($value): FeedbackElementQuery
     {
         $this->comment = $value;
+
+        return $this;
+    }
+
+    public function hasComment(bool $value): FeedbackElementQuery
+    {
+        $this->hasComment = $value;
+
         return $this;
     }
 
@@ -174,6 +189,18 @@ class FeedbackElementQuery extends ElementQuery
                 'feedback_record.userAgent',
                 $this->userAgent)
             );
+        }
+
+        if (!is_null($this->hasComment)) {
+            // Ok, a `true` value means one thing...
+            if ($this->hasComment === true) {
+                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':notempty:'));
+            }
+
+            // ...and a false value means another...
+            if ($this->hasComment === false) {
+                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':empty:'));
+            }
         }
 
         return parent::beforePrepare();

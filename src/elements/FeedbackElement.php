@@ -9,7 +9,6 @@ use craft\elements\db\ElementQueryInterface;
 use craft\elements\actions\Restore;
 use craft\elements\actions\Delete;
 use craft\elements\Entry;
-use craft\errors\ElementNotFoundException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use DateTime;
@@ -19,7 +18,6 @@ use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
-use mortscode\feedback\helpers\CacheHelpers;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\elements\actions\SetStatus;
 use Twig\Error\LoaderError;
@@ -35,6 +33,7 @@ use yii\db\Exception;
  *
  * @property-read Entry $entry
  * @property-read null|int $totalPendingCount
+ * @property-read string $gqlTypeName
  * @property-read string $entryTitle
  */
 class FeedbackElement extends Element
@@ -197,7 +196,7 @@ class FeedbackElement extends Element
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 

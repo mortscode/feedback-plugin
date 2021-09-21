@@ -57,11 +57,8 @@ class FeedbackService extends Component
     public function getEntryFeedback(int $entryId): FeedbackElementQuery
     {
         return FeedbackElement::find()
-            ->where([
-                'entryId' => $entryId,
-                'feedbackStatus' => FeedbackStatus::Approved
-            ])
-            ->orderBy(['dateCreated' => SORT_DESC]);
+            ->entryId($entryId)
+            ->feedbackStatus(FeedbackStatus::Approved);
     }
 
     /**
@@ -162,7 +159,8 @@ class FeedbackService extends Component
     public function getPendingFeedbackByType(string $type): int
     {
         return FeedbackElement::find()
-            ->where(['feedbackType' => $type, 'feedbackStatus' => FeedbackStatus::Pending])
+            ->feedbackType($type)
+            ->feedbackStatus(FeedbackStatus::Pending)
             ->count();
     }
 
@@ -174,7 +172,7 @@ class FeedbackService extends Component
     public function getTotalPendingFeedback(): int
     {
         return FeedbackElement::find()
-            ->where(['feedbackStatus' => FeedbackStatus::Pending])
+            ->feedbackStatus(FeedbackStatus::Pending)
             ->count();
     }
 

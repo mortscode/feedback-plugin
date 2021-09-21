@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.27 - 2021-09-20
+### Added
+- GraphQl arguments for `hasComment`
+### Updated
+- All instances of `find()` on `FeedbackElement` converted away from ActiveRecord
+
 ## 1.0.26 - 2021-09-17
 ### Updated
 - Styled entry and feedback detail button containers

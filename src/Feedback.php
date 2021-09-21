@@ -246,7 +246,7 @@ class Feedback extends Plugin
             Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS,
             function(RegisterGqlSchemaComponentsEvent $event) {
                 $event->queries = array_merge($event->queries, [
-                    // “Widgets” group
+                    // “Feedback” group
                     'Feedback' => [
                         // feedback component with read action, labelled “View Feedback” in UI
                         'feedback:read' => ['label' => 'View Feedback']
