@@ -15,22 +15,22 @@ class FeedbackArguments extends StructureElementArguments
         return array_merge(parent::getArguments(), self::getContentArguments(), [
             'entryId' => [
                 'name' => 'entryId',
-                'type' => Type::listOf(Type::int()),
+                'type' => Type::int(),
                 'description' => 'Narrows the query results based on the related Entry Id.'
             ],
             'hasComment' => [
                 'name' => 'hasComment',
-                'type' => Type::listOf(Type::boolean()),
+                'type' => Type::boolean(),
                 'description' => 'Narrows the query results whether the comment field is empty.'
             ],
             'feedbackStatus' => [
                 'name' => 'feedbackStatus',
-                'type' => Type::listOf(Type::string()),
+                'type' => Type::string(),
                 'description' => 'Narrows the query results based on the feedback status.'
             ],
             'feedbackType' => [
                 'name' => 'feedbackType',
-                'type' => Type::listOf(Type::string()),
+                'type' => Type::string(),
                 'description' => 'Narrows the query results based on the type of feedback.'
             ],
         ]);

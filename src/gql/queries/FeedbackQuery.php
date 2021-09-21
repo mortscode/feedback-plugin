@@ -24,10 +24,8 @@ class FeedbackQuery extends BaseQuery
                 'type' => Type::listOf(FeedbackInterface::getType()),
                 'args' => FeedbackArguments::getArguments(),
                 'resolve' => FeedbackResolver::class . '::resolve',
-                'description' => 'This query is used to query for custom feedback.'
+                'description' => 'This query is used to query for feedback elements.'
             ],
         ];
     }
 }
-
-

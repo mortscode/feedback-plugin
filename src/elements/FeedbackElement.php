@@ -152,13 +152,6 @@ class FeedbackElement extends Element
     public $comment = null;
 
     /**
-     * hasComment
-     *
-     * @var bool
-     */
-    public $hasComment = false;
-
-    /**
      * response
      *
      * @var string
@@ -551,16 +544,6 @@ class FeedbackElement extends Element
         }
 
         return parent::eagerLoadingMap($sourceElements, $handle);
-    }
-
-    // Comments
-    // ------------------------------------
-    /**
-     * @return bool
-     */
-    public function hasComment(): bool
-    {
-        return empty($this->comment);
     }
 
     // GraphQl

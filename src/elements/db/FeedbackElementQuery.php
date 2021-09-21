@@ -2,6 +2,7 @@
 
 namespace mortscode\feedback\elements\db;
 
+use Craft;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 use mortscode\feedback\enums\FeedbackStatus;
@@ -20,6 +21,11 @@ class FeedbackElementQuery extends ElementQuery
     public $feedbackOrigin;
     public $ipAddress;
     public $userAgent;
+
+    /**
+     * @inheritdoc
+     */
+    protected $defaultOrderBy = ['feedback_record.dateCreated' => SORT_DESC];
 
     public function entryId($value): FeedbackElementQuery
     {
@@ -43,14 +49,10 @@ class FeedbackElementQuery extends ElementQuery
     {
         $this->comment = $value;
 
-        if ($value !== ":empty:") {
-            $this->hasComment = true;
-        }
-
         return $this;
     }
 
-    public function hasComment($value): FeedbackElementQuery
+    public function hasComment(bool $value): FeedbackElementQuery
     {
         $this->hasComment = $value;
 
@@ -118,20 +120,6 @@ class FeedbackElementQuery extends ElementQuery
             'feedback_record.ipAddress',
             'feedback_record.userAgent',
         ]);
-
-        if (!is_null($this->hasComment)) {
-            // Ok, a `true` value means one thing...
-            if ($this->hasComment === true) {
-                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':notempty:'));
-            }
-
-            // ...and a false value means another...
-            if ($this->hasComment === false) {
-                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':empty:'));
-            }
-
-            // ...and `null` wouldn't even have a constraint applied!
-        }
 
         if ($this->entryId) {
             $this->subQuery->andWhere(Db::parseParam(
@@ -201,6 +189,18 @@ class FeedbackElementQuery extends ElementQuery
                 'feedback_record.userAgent',
                 $this->userAgent)
             );
+        }
+
+        if (!is_null($this->hasComment)) {
+            // Ok, a `true` value means one thing...
+            if ($this->hasComment === true) {
+                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':notempty:'));
+            }
+
+            // ...and a false value means another...
+            if ($this->hasComment === false) {
+                $this->subQuery->andWhere(Db::parseParam('feedback_record.comment', ':empty:'));
+            }
         }
 
         return parent::beforePrepare();
