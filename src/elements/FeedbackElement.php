@@ -184,7 +184,7 @@ class FeedbackElement extends Element
      *
      * @var string
      */
-    public $feedbackStatus = FeedbackStatus::Pending;
+    public $feedbackStatus = null;
 
     /**
      * feedbackOrigin
@@ -200,7 +200,6 @@ class FeedbackElement extends Element
     {
         parent::init();
 
-        // Decode geoIp if not empty
         $this->name = LitEmoji::shortcodeToUnicode($this->name);
         $this->comment = LitEmoji::shortcodeToUnicode($this->comment);
         $this->response = LitEmoji::shortcodeToUnicode($this->response);
@@ -473,6 +472,11 @@ class FeedbackElement extends Element
                     'message' => 'Email is required'
                 ];
             $rules[] = ['email', 'email'];
+        }
+        if ($this->feedbackType === FeedbackType::Question){
+            $rules[] = ['comment', 'required',
+                'message' => 'Comment is required'
+            ];
         }
         $rules[] = ['comment', 'match',
             'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',

@@ -18,14 +18,13 @@ use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackOrigin;
+use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
 use mortscode\feedback\helpers\RequestHelpers;
 
 use Craft;
 use craft\web\Controller;
-use Psy\Util\Json;
-use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -503,7 +502,7 @@ class FeedbackController extends Controller
 
     /**
      * @param string|null $origin
-     * @return FeedbackElement
+     * @return string
      */
     private function _handleFeedbackOrigin(?string $origin): string
     {
@@ -512,6 +511,28 @@ class FeedbackController extends Controller
         }
 
         return RequestHelpers::isCpRequest() ? FeedbackOrigin::CONTROL_PANEL : FeedbackOrigin::FRONTEND;
+    }
+
+    /**
+     * @param string $requestStatus
+     * @param FeedbackElement $feedback
+     * @return string
+     */
+    private function _handleFeedbackStatus(string $requestStatus, FeedbackElement $feedback): string
+    {
+        if ($requestStatus) {
+            return $requestStatus;
+        }
+
+        if (
+            $feedback->feedbackType === FeedbackType::Review
+            and empty($feedback->comment)
+            and $feedback->rating >= 3
+        ) {
+            return FeedbackStatus::Approved;
+        }
+
+        return FeedbackStatus::Pending;
     }
 
     /**
@@ -537,7 +558,7 @@ class FeedbackController extends Controller
         $feedback->comment = $request->getParam('comment', $feedback->comment);
         $feedback->response = $request->getParam('response', $feedback->response);
         $feedback->feedbackType = $request->getParam('feedbackType', $feedback->feedbackType);
-        $feedback->feedbackStatus = $request->getParam('feedbackStatus', $feedback->feedbackStatus);
+        $feedback->feedbackStatus = $this->_handleFeedbackStatus($request->getParam('feedbackStatus'), $feedback);
         $feedback->feedbackOrigin = $this->_handleFeedbackOrigin($feedback->feedbackOrigin);
 
         return $feedback;
@@ -569,8 +590,8 @@ class FeedbackController extends Controller
             ]);
 //            return $response->getBody();
             return json_decode((string)$response->getBody(), true);
-        } else {
-            return $this->asErrorJson('There was no response key attached to the request, as provided by the front-end script. We can not continue without this key.');
         }
+
+        return $this->asErrorJson('There was no response key attached to the request, as provided by the front-end script. We can not continue without this key.');
     }
 }
