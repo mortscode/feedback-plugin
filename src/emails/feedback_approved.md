@@ -18,8 +18,10 @@ Your {{ feedback.feedbackType }} has been APPROVED on our [{{ entry.title }}]({{
 {% for i in 1..feedback.rating %}&#9733;{% endfor %}
 {% if remainingStars > 0%}{% for i in 1..remainingStars %}&#9734;{% endfor %}{% endif %}</p>
 {% endif %}
+{% if feedback.comment %}
 <p><span style="font-weight: bold">Comment:</span></br>
 {{ feedback.comment }}</p>
+{% endif %}
 {% if feedback.response %}
 <p><span style="font-weight: bold">Response:</span></br>
 {{ feedback.response }}</p>

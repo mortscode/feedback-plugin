@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.29 - 2021-09-20
+### Updated
+- Emails don't show comment header if there is no comment
+
 ## 1.0.28 - 2021-09-20
 ### Added
 - Automatically approve reviews with no comment and more than 3 stars

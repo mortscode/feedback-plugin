@@ -514,11 +514,11 @@ class FeedbackController extends Controller
     }
 
     /**
-     * @param string $requestStatus
+     * @param string|null $requestStatus
      * @param FeedbackElement $feedback
      * @return string
      */
-    private function _handleFeedbackStatus(string $requestStatus, FeedbackElement $feedback): string
+    private function _handleFeedbackStatus(?string $requestStatus, FeedbackElement $feedback): string
     {
         if ($requestStatus) {
             return $requestStatus;

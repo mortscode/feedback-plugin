@@ -17,22 +17,21 @@ There is a new response to your {{ feedback.feedbackType }} on our [{{ entry.tit
 <p><span style="font-weight: bold">Rating:</span> 
 {% for i in 1..feedback.rating %}&#9733;{% endfor %}
 {% if remainingStars > 0%}{% for i in 1..remainingStars %}&#9734;{% endfor %}{% endif %}</p>
-<p><span style="font-weight: bold">Comment:</span></br>
-{{ feedback.comment }}</p>
-<p><span style="font-weight: bold">Response:</span></br>
-{{ feedback.response }}</p>
-{% else %}
-<p><span style="font-weight: bold">Comment:</span></br>
-{{ feedback.comment }}</p>
-<p><span style="font-weight: bold">Response:</span></br>
-{{ feedback.response }}</p>
 {% endif %}
+{% if feedback.comment %}
+<p><span style="font-weight: bold">Comment:</span></br>
+{{ feedback.comment }}</p>
+{% endif %}
+{% if feedback.response %}
+<p><span style="font-weight: bold">Response:</span></br>
+{{ feedback.response }}</p>
 </div>
+{% endif %}
 
 {% if feedback.feedbackStatus == 'approved' %}
 Checkout your {{ feedback.feedbackType }} on [The Modern Proper]({{ entry.url }}#feedback).
 {% else %}
-Your comment is still pending, so you won't see it on the site.
+Your comment is pending, so you won't see it on the site.
 {% endif %}
 
 ---
