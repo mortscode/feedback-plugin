@@ -22,7 +22,7 @@
 		}
 	],
 	"require-dev": {
-		"craftcms/cms": "^3.9.0",
+		"craftcms/cms": "^4.0.0",
 		"codeception/codeception": "^4.0",
 		"vlucas/phpdotenv": "^3.0",
 		"craftcms/phpstan": "dev-main",
@@ -57,5 +57,8 @@
 			"yiisoft/yii2-composer": true,
 			"craftcms/plugin-installer": true
 		}
+	},
+	"require": {
+		"php": "^8.0.2"
 	}
 }

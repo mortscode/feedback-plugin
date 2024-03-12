@@ -527,7 +527,7 @@ class FeedbackElement extends Element
      * @param string $handle
      * @return array|false|null
      */
-    public static function eagerLoadingMap(array $sourceElements, string $handle)
+    public static function eagerLoadingMap(array $sourceElements, string $handle): array|false|null
     {
         if ($handle === 'entry') {
             // get the source element IDs
@@ -556,7 +556,7 @@ class FeedbackElement extends Element
      * @param mixed $context
      * @return string
      */
-    public static function gqlTypeNameByContext($context): string
+    public static function gqlTypeNameByContext(mixed $context): string
     {
         return 'Feedback';
     }

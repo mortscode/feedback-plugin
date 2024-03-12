@@ -206,7 +206,7 @@ class FeedbackElementQuery extends ElementQuery
     }
 
     // Update Status options
-    protected function statusCondition(string $status)
+    protected function statusCondition(string $status): mixed
     {
         switch ($status) {
             case FeedbackStatus::Approved:
