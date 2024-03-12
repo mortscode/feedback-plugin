@@ -14,14 +14,14 @@ use craft\gql\TypeManager;
 
 class FeedbackGenerator extends Generator implements GeneratorInterface, SingleGeneratorInterface
 {
-    public static function generateTypes($context = null): array
+    public static function generateTypes(mixed $context = null): array
     {
         // Feedback items have no context
         $type = static::generateType($context);
         return [$type->name => $type];
     }
 
-    public static function generateType($context)
+    public static function generateType(mixed $context): mixed
     {
         $context = $context ?: Craft::$app->getFields()->getLayoutByType(FeedbackElement::class);
 

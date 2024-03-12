@@ -299,7 +299,7 @@ class Feedback extends Plugin
      *
      * @return Model|null
      */
-    protected function createSettingsModel()
+    protected function createSettingsModel(): ?\craft\base\Model
     {
         return new Settings();
     }
