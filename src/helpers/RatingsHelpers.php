@@ -20,7 +20,7 @@ class RatingsHelpers
         $average = FeedbackElement::find()
             ->entryId($entryId)
             ->feedbackStatus(FeedbackStatus::Approved)
-            ->feedbackType(FeedbackType::Review)
+            ->feedbackType([FeedbackType::Review, FeedbackType::Rating])
             ->rating(':notempty:')
             ->average('rating');
 
@@ -31,7 +31,7 @@ class RatingsHelpers
         return FeedbackElement::find()
             ->entryId($entryId)
             ->feedbackStatus(FeedbackStatus::Approved)
-            ->feedbackType(FeedbackType::Review)
+            ->feedbackType([FeedbackType::Review, FeedbackType::Rating])
             ->rating(':notempty:')
             ->count();
     }

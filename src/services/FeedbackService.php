@@ -67,7 +67,7 @@ class FeedbackService extends Component
      * @param mixed $feedbackId
      * @return FeedbackElement|null
      */
-    public function getFeedbackById($feedbackId): ?FeedbackElement
+    public function getFeedbackById(mixed $feedbackId): ?FeedbackElement
     {
         return FeedbackElement::findOne($feedbackId);
     }

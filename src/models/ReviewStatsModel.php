@@ -34,12 +34,12 @@ class ReviewStatsModel extends Model
     /**
      * @var int|null Average Rating
      */
-    public $averageRating;
+    public ?int $averageRating;
 
     /**
      * @var int|null Total Ratings
      */
-    public $totalRatings;
+    public ?int $totalRatings;
 
 
 
