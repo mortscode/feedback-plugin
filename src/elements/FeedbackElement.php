@@ -18,6 +18,8 @@ use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
+use mortscode\feedback\helpers\RequestHelpers;
+use mortscode\feedback\models\FeedbackModel;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\elements\actions\SetStatus;
 use Twig\Error\LoaderError;
@@ -126,16 +128,16 @@ class FeedbackElement extends Element
     /**
      * name
      *
-     * @var string
+     * @var string|null
      */
-    public $name;
+    public ?string $name = null;
 
     /**
      * email
      *
-     * @var string
+     * @var string|null
      */
-    public $email;
+    public ?string $email = null;
 
     /**
      * rating
@@ -252,6 +254,7 @@ class FeedbackElement extends Element
                 'label' => 'Approved',
                 'criteria' => [
                     'feedbackStatus' => FeedbackStatus::Approved,
+                    'feedbackType' => [FeedbackType::Question, FeedbackType::Review]
                 ]
             ],
             [
@@ -260,6 +263,7 @@ class FeedbackElement extends Element
                 'badgeCount' => (new FeedbackElement)->getTotalPendingCount(),
                 'criteria' => [
                     'feedbackStatus' => FeedbackStatus::Pending,
+                    'feedbackType' => [FeedbackType::Question, FeedbackType::Review]
                 ]
             ],
             [
@@ -284,6 +288,15 @@ class FeedbackElement extends Element
                 'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Question),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Question,
+                    'feedbackStatus' => [FeedbackStatus::Approved, FeedbackStatus::Pending],
+                ]
+            ],
+            [
+                'key' => 'allAnonymous',
+                'label' => 'All Anonymous',
+                'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Rating),
+                'criteria' => [
+                    'feedbackType' => FeedbackType::Rating,
                     'feedbackStatus' => [FeedbackStatus::Approved, FeedbackStatus::Pending],
                 ]
             ],
@@ -456,28 +469,33 @@ class FeedbackElement extends Element
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-        $rules[] =
-            [['name', 'feedbackType'],
+        $rules[] = [
+            'feedbackType',
+            'required',
+            'message' => 'Feedback Type is required'
+        ];
+
+        // NO RULES FOR DISQUS IMPORT
+        if (FeedbackOrigin::IMPORT_DISQUS) {
+            return $rules;
+        }
+
+        // DEFINE REQUIRED FIELDS FOR EACH TYPE OF FEEDBACK
+        $rules[] = match ($this->feedbackType) {
+            FeedbackType::Review => [
+                ['name', 'email', 'rating'],
                 'required',
                 'message' => '{attribute} is required'
-            ];
-        // IF ORIGIN IS FRONTEND OR CP, EMAIL IS REQUIRED
-        if (in_array($this->feedbackOrigin,
-            [
-                FeedbackOrigin::CONTROL_PANEL,
-                FeedbackOrigin::FRONTEND
-            ], false))
-        {
-            $rules[] = ['email', 'required',
-                    'message' => 'Email is required'
-                ];
-            $rules[] = ['email', 'email'];
-        }
-        if ($this->feedbackType === FeedbackType::Question){
-            $rules[] = ['comment', 'required',
-                'message' => 'Comment is required'
-            ];
-        }
+            ],
+            FeedbackType::Question => [
+                ['name', 'email', 'comment'],
+                'required',
+                'message' => '{attribute} is required'
+            ],
+        };
+
+        // DEFINE FORMATTING RULES FOR FIELD TYPES
+        $rules[] = ['email', 'email'];
         $rules[] = ['comment', 'match',
             'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',
             'not' => true,
@@ -594,14 +612,18 @@ class FeedbackElement extends Element
                 $feedbackRecord->id = (int)$this->id;
             }
 
-            $encodedName = LitEmoji::encodeShortcode($this->name);
+            $encodedName = $this->name ? LitEmoji::encodeShortcode($this->name) : null;
             $encodedComment = LitEmoji::encodeShortcode($this->comment);
             $encodedResponse = LitEmoji::encodeShortcode($this->response);
 
             $feedbackRecord->entryId = $this->entryId;
-            $feedbackRecord->name = $encodedName;
+            $feedbackRecord->name = $encodedName ?? 'Anonymous';
             $feedbackRecord->email = $this->email;
-            $feedbackRecord->rating = $this->rating ?? null;
+            $feedbackRecord->rating = match ($this->feedbackType) {
+                FeedbackType::Rating => 5,
+                FeedbackType::Review => $this->rating,
+                FeedbackType::Question => null
+            };
             $feedbackRecord->comment = $encodedComment;
             $feedbackRecord->response = $encodedResponse;
             $feedbackRecord->ipAddress = $this->ipAddress;
@@ -611,14 +633,15 @@ class FeedbackElement extends Element
             $feedbackRecord->feedbackOrigin = $this->feedbackOrigin;
             $feedbackRecord->dateCreated = $this->dateCreated;
 
-            Feedback::$plugin->feedbackService->handleMailDelivery($isNew, $feedbackRecord);
+            if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+                Feedback::$plugin->feedbackService->handleMailDelivery($isNew, $feedbackRecord);
+            }
 
             $feedbackRecord->save(true);
         }
 
-//        CacheHelpers::purgeEntriesByUrl([$this->getEntry()->url]);
-
-        parent::afterSave($isNew);
+//            CacheHelpers::purgeEntriesByUrl([$this->getEntry()->url]);
+            parent::afterSave($isNew);
     }
 
     /**

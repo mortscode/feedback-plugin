@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.0.2 - 2024-03-18
+### Added
+- User can add anonymous reviews
+- One anonymous review per day allowed
+- New hasRatedToday variable
+- Migrations for new Ratings feedback type
+### Updated
+- Updated CP settings for Ratings
+
 ## 4.0.1 - 2024-03-11
 ### Updated
 - Updated composer.json with version number for packagist

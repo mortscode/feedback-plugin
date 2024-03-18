@@ -122,13 +122,16 @@
 			<a href="{{ entry.url }}" class="feedback-entry" target="_blank">Link to {{ entry.title }}</a>
 			<h2>Email</h2>
 			<p class="feedback-email">{{ feedback.email ?: 'None given' }}</p>
-			{% if feedback.feedbackType == 'review' %}
+			{% if feedback.feedbackType in ['review', 'rating'] %}
 				<h2>Rating</h2>
 				<p class="feedback-rating">{{ feedback.rating }} / 5</p>
 			{% endif %}
+			{% if feedback.feedbackType in ['review', 'question'] %}
 			<h2>Comment</h2>
 			<p class="feedback-comment">{{ feedback.comment }}</p>
+			{% endif %}
 		</div>
+		{% if feedback.feedbackType in ['review', 'question'] %}
 		<hr>
 		{{ forms.textAreaField({
             first: true,
@@ -139,5 +142,6 @@
             value: feedback.response ?? '',
             errors: comment.getErrors('response') ?? '',
         }) }}
+		{% endif %}
 	</div>
 {% endblock %}

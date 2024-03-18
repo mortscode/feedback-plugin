@@ -111,50 +111,50 @@ class FeedbackModel extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns the validation rules for attributes.
-     *
-     * Validation rules are used by [[validate()]] to check if attribute values are valid.
-     * Child classes may override this method to declare different validation rules.
-     *
-     * More info: http://www.yiiframework.com/doc-2.0/guide-input-validation.html
-     *
-     * @return array
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        // the feedbackType is required
-        $rules[] = [
-            'feedbackType',
-            'required',
-            'message' => 'Feedback Type is required'
-        ];
-
-        // the email attribute should be a valid email address
-        $rules[] = ['email', 'email'];
-
-        // the comment field should not have links in it
-        $rules[] = [
-            'comment',
-            'match',
-            'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',
-            'not' => true,
-            'message' => 'Your comment cannot contain urls or links.'
-        ];
-
-        // conditionally require name and email on non-anonymous feedback types
-        if (!$this->feedbackType == FeedbackType::Rating) {
-            $rules[] = [
-                ['name', 'email'],
-                'required',
-                'message' => '{attribute} is required'
-            ];
-        }
-
-        return $rules;
-    }
+//    /**
+//     * Returns the validation rules for attributes.
+//     *
+//     * Validation rules are used by [[validate()]] to check if attribute values are valid.
+//     * Child classes may override this method to declare different validation rules.
+//     *
+//     * More info: http://www.yiiframework.com/doc-2.0/guide-input-validation.html
+//     *
+//     * @return array
+//     */
+//    protected function defineRules(): array
+//    {
+//        $rules = parent::defineRules();
+//
+//        // the feedbackType is required
+//        $rules[] = [
+//            'feedbackType',
+//            'required',
+//            'message' => 'Feedback Type is required'
+//        ];
+//
+//        // the email attribute should be a valid email address
+//        $rules[] = ['email', 'email'];
+//
+//        // the comment field should not have links in it
+//        $rules[] = [
+//            'comment',
+//            'match',
+//            'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',
+//            'not' => true,
+//            'message' => 'Your comment cannot contain urls or links.'
+//        ];
+//
+//        // conditionally require name and email on non-anonymous feedback types
+//        if (!$this->feedbackType == FeedbackType::Rating) {
+//            $rules[] = [
+//                ['name', 'email'],
+//                'required',
+//                'message' => '{attribute} is required'
+//            ];
+//        }
+//
+//        return $rules;
+//    }
 
     /**
      * Define what is returned when model is converted to string

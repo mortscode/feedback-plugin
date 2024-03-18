@@ -112,8 +112,8 @@ class Install extends Migration
                     'uid' => $this->uid(),
                     // Custom columns in the table
                     'entryId' => $this->integer()->notNull(),
-                    'name' => $this->string(255)->notNull(),
-                    'email' => $this->string(255)->notNull(),
+                    'name' => $this->string(255),
+                    'email' => $this->string(255),
                     'rating' => $this->integer(),
                     'comment' => $this->text(),
                     'response' => $this->text(),
@@ -121,7 +121,8 @@ class Install extends Migration
                     'userAgent' => $this->string(),
                     'feedbackType' => $this->enum('feedbackType', [
                         FeedbackType::Review,
-                        FeedbackType::Question
+                        FeedbackType::Question,
+                        FeedbackType::Rating,
                     ]),
                     'feedbackStatus' => $this->enum('status', [
                         FeedbackStatus::Approved,

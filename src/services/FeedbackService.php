@@ -21,6 +21,7 @@ use Craft;
 use craft\base\Component;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\helpers\EmailHelpers;
+use mortscode\feedback\helpers\RequestHelpers;
 use mortscode\feedback\models\ReviewStatsModel;
 use mortscode\feedback\records\FeedbackRecord;
 use mortscode\feedback\helpers\RatingsHelpers;
@@ -83,6 +84,17 @@ class FeedbackService extends Component
         $reviewStats->totalRatings = RatingsHelpers::getTotalRatings($entryId);
 
         return $reviewStats;
+    }
+
+    /**
+     * @param $entryId
+     * @param $ip
+     *
+     * @return bool
+     */
+    public function hasRatedToday($entryId, $ip): bool
+    {
+        return RequestHelpers::isRepeatAnonymousRating($entryId, $ip);
     }
 
     /**
