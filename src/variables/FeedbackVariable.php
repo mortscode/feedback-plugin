@@ -59,12 +59,25 @@ class FeedbackVariable
     }
 
     /**
-     * @param $entryId
+     * @param int $entryId
      * @return ReviewStatsModel
      */
-    public function getEntryReviewStats($entryId): ReviewStatsModel
+    public function getEntryReviewStats(int $entryId): ReviewStatsModel
     {
         return Feedback::$plugin->feedbackService->getEntryReviewStats($entryId);
+    }
+
+    /**
+     * hasRatedToday
+     *
+     * @param int $entryId
+     * @param string $ip
+     *
+     * @return bool
+     */
+    public function hasRatedToday( int $entryId,  string $ip): bool
+    {
+        return Feedback::$plugin->feedbackService->hasRatedToday($entryId, $ip);
     }
 
     /**

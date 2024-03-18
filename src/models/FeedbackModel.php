@@ -34,114 +34,127 @@ class FeedbackModel extends Model
     /**
      * @var int|null ID
      */
-    public $id;
+    public ?int $id;
 
     /**
      * @var int|null Entry ID
      */
-    public $entryId;
+    public ?int $entryId;
 
     /**
      * @var \DateTime|null Date created
      */
-    public $dateCreated;
+    public ?\DateTime $dateCreated;
 
     /**
      * @var \DateTime|null Date updated
      */
-    public $dateUpdated;
+    public ?\DateTime $dateUpdated;
 
     /**
      * name
      *
      * @var string
      */
-    public $name;
+    public string $name;
 
     /**
      * email
      *
      * @var string
      */
-    public $email;
+    public string $email;
 
     /**
      * rating
      *
      * @var int
      */
-    public $rating = null;
+    public ?int $rating = null;
 
     /**
      * comment
      *
      * @var string
      */
-    public $comment = null;
+    public ?string $comment = null;
 
     /**
      * response
      *
      * @var string
      */
-    public $response = null;
+    public ?string $response = null;
 
     /**
      * ipAddress
      *
      * @var string
      */
-    public $ipAddress = null;
+    public ?string $ipAddress = null;
 
     /**
      * userAgent
      *
      * @var string
      */
-    public $userAgent = null;
+    public ?string $userAgent = null;
 
     /**
      * feedbackType
      *
      * @var string
      */
-    public $feedbackType = FeedbackType::Review;
+    public string $feedbackType = FeedbackType::Review;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns the validation rules for attributes.
-     *
-     * Validation rules are used by [[validate()]] to check if attribute values are valid.
-     * Child classes may override this method to declare different validation rules.
-     *
-     * More info: http://www.yiiframework.com/doc-2.0/guide-input-validation.html
-     *
-     * @return array
-     */
-    public function rules(): array
-    {
-        return [
-            // the name, email attributes are required
-            [
-                ['name', 'email', 'feedbackType'],
-                'required',
-                'message' => '{attribute} is required'
-            ],
-
-            // the email attribute should be a valid email address
-            ['email', 'email'],
-
-            // the comment field should not have links in it
-            ['comment', 'match',
-                'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',
-                'not' => true,
-                'message' => 'Your comment cannot contain urls or links.'
-            ],
-        ];
-    }
+//    /**
+//     * Returns the validation rules for attributes.
+//     *
+//     * Validation rules are used by [[validate()]] to check if attribute values are valid.
+//     * Child classes may override this method to declare different validation rules.
+//     *
+//     * More info: http://www.yiiframework.com/doc-2.0/guide-input-validation.html
+//     *
+//     * @return array
+//     */
+//    protected function defineRules(): array
+//    {
+//        $rules = parent::defineRules();
+//
+//        // the feedbackType is required
+//        $rules[] = [
+//            'feedbackType',
+//            'required',
+//            'message' => 'Feedback Type is required'
+//        ];
+//
+//        // the email attribute should be a valid email address
+//        $rules[] = ['email', 'email'];
+//
+//        // the comment field should not have links in it
+//        $rules[] = [
+//            'comment',
+//            'match',
+//            'pattern' => '%^((https?://)|(www\.))([a-z0-9-].?)+(:[0-9]+)?(/.*)?$%i',
+//            'not' => true,
+//            'message' => 'Your comment cannot contain urls or links.'
+//        ];
+//
+//        // conditionally require name and email on non-anonymous feedback types
+//        if (!$this->feedbackType == FeedbackType::Rating) {
+//            $rules[] = [
+//                ['name', 'email'],
+//                'required',
+//                'message' => '{attribute} is required'
+//            ];
+//        }
+//
+//        return $rules;
+//    }
 
     /**
      * Define what is returned when model is converted to string

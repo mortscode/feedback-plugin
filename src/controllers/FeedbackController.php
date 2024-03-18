@@ -94,11 +94,18 @@ class FeedbackController extends Controller
             }
         }
 
+
         // Determine whether we're creating or updating and get that model back
         $feedback = $this->_getFeedbackElementModel($request->getParam('feedbackId', null));
 
         // Populate the new element model
         $feedback = $this->_populateFeedbackElement($feedback, $request);
+
+        // Users can only anonymously rate each post once per day
+        if (RequestHelpers::isRepeatAnonymousRating($feedback->entryId, $feedback->ipAddress)) {
+            $this->setFailFlash(Craft::t('feedback', 'Too many anonymous ratings on this entry today'));
+            return null;
+        }
 
         // Validate the new FeedbackModel model
         $isValid = $feedback->validate();
@@ -523,11 +530,17 @@ class FeedbackController extends Controller
         if ($requestStatus) {
             return $requestStatus;
         }
-
+        // Automatically approve feedback if 4 or more w/ no comment
         if (
             $feedback->feedbackType === FeedbackType::Review
             and empty($feedback->comment)
-            and $feedback->rating >= 3
+            and $feedback->rating >= 4
+        ) {
+            return FeedbackStatus::Approved;
+        }
+        // Automatically approve feedback if 4 or more and anonymous
+        if (
+            $feedback->feedbackType === FeedbackType::Rating
         ) {
             return FeedbackStatus::Approved;
         }

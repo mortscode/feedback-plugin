@@ -2,7 +2,7 @@
 	"name": "mortscode/feedback",
 	"description": "A Craft plugin for user reviews and questions",
 	"type": "craft-plugin",
-	"version": "4.0.10",
+	"version": "4.0.20",
 	"keywords": [
 		"craft",
 		"cms",
@@ -31,7 +31,7 @@
 	},
 	"scripts": {
 		"phpstan": "phpstan --memory-limit=1G",
-			"rector": "rector process src --config vendor/craftcms/rector/sets/craft-cms-40.php"
+		"rector": "rector process src --config vendor/craftcms/rector/sets/craft-cms-40.php"
 	},
 	"autoload": {
 		"psr-4": {

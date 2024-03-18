@@ -13,4 +13,5 @@ abstract class FeedbackType
 {
     public const Review = 'review';
     public const Question = 'question';
+    public const Rating = 'rating';
 }

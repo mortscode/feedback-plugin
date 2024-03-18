@@ -32,14 +32,14 @@ class ReviewStatsModel extends Model
     // =========================================================================
 
     /**
-     * @var int|null Average Rating
+     * @var float|null Average Rating
      */
-    public $averageRating;
+    public ?float $averageRating;
 
     /**
      * @var int|null Total Ratings
      */
-    public $totalRatings;
+    public ?int $totalRatings;
 
 
 

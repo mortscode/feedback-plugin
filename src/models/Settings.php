@@ -40,49 +40,49 @@ class Settings extends Model
      *
      * @var bool
      */
-    public $recaptchaEnabled = false;
+    public bool $recaptchaEnabled = false;
 
     /**
      * ReCaptcha Site Key
      *
      * @var string
      */
-    public $recaptchaSiteKey = null;
+    public ?string $recaptchaSiteKey = null;
 
     /**
      * ReCaptcha Secret Key
      *
      * @var string
      */
-    public $recaptchaSecretKey = null;
+    public ?string $recaptchaSecretKey = null;
 
     /**
      * Email Header Url
      *
      * @var string
      */
-    public $emailHeaderUrl = null;
+    public ?string $emailHeaderUrl = null;
 
     /**
      * Discuss User Handle
      *
      * @var string
      */
-    public $disqusUserHandle = null;
+    public ?string $disqusUserHandle = null;
 
     /**
      * which sections are able to be reviewed
      *
      * @var array
      */
-    public $feedbackSections = [];
+    public array $feedbackSections = [];
 
     /**
      * GraphQL Token
      *
      * @var string
      */
-    public $graphQlToken = null;
+    public ?string $graphQlToken = null;
 
     // Public Methods
     // =========================================================================
