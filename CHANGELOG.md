@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.0.21 - 2024-03-19
+### Fixed
+- Send email conditional
+
 ## 4.0.2 - 2024-03-18
 ### Added
 - User can add anonymous reviews

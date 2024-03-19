@@ -633,7 +633,7 @@ class FeedbackElement extends Element
             $feedbackRecord->feedbackOrigin = $this->feedbackOrigin;
             $feedbackRecord->dateCreated = $this->dateCreated;
 
-            if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+            if (!empty($feedbackRecord->email)) {
                 Feedback::$plugin->feedbackService->handleMailDelivery($isNew, $feedbackRecord);
             }
 
