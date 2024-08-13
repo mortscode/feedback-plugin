@@ -108,7 +108,7 @@ class FeedbackElement extends Element
     /**
      * @var int|null ID
      */
-    public $id;
+    public ?int $id;
 
     /**
      * @var int|null Entry ID
@@ -118,12 +118,12 @@ class FeedbackElement extends Element
     /**
      * @var DateTime|null Date created
      */
-    public $dateCreated;
+    public ?\DateTime $dateCreated;
 
     /**
      * @var DateTime|null Date updated
      */
-    public $dateUpdated;
+    public ?\DateTime $dateUpdated;
 
     /**
      * name

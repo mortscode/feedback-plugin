@@ -24,7 +24,7 @@ class FeedbackElementQuery extends ElementQuery
     /**
      * @inheritdoc
      */
-    protected $defaultOrderBy = ['feedback_record.dateCreated' => SORT_DESC];
+    protected array $defaultOrderBy = ['feedback_record.dateCreated' => SORT_DESC];
 
     public function entryId($value): FeedbackElementQuery
     {

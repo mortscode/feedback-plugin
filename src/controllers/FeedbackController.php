@@ -63,7 +63,7 @@ class FeedbackController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = ['save'];
+    protected array|int|bool $allowAnonymous = ['save'];
 
     // Public Methods
     // =========================================================================

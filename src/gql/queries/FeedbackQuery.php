@@ -11,7 +11,7 @@ use mortscode\feedback\gql\resolvers\elements\FeedbackResolver;
 
 class FeedbackQuery extends BaseQuery
 {
-    public static function getQueries($checkToken = true): array
+    public static function getQueries(bool $checkToken = true): array
     {
         // Make sure the current token’s schema allows querying widgets
         if ($checkToken && !GqlHelper::canQueryFeedback()) {

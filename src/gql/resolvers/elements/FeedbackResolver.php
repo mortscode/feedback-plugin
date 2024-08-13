@@ -9,7 +9,7 @@ use mortscode\feedback\helpers\Gql as GqlHelper;
 
 class FeedbackResolver extends ElementResolver
 {
-    public static function prepareQuery(mixed $source, array $arguments, mixed $fieldName = null): mixed
+    public static function prepareQuery(mixed $source, array $arguments, ?string $fieldName = null): mixed
     {
         if ($source === null) {
             // If this is the beginning of a resolver chain, start fresh
