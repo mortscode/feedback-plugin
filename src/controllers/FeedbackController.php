@@ -102,7 +102,7 @@ class FeedbackController extends Controller
         $feedback = $this->_populateFeedbackElement($feedback, $request);
 
         // Users can only anonymously rate each post once per day
-        if (RequestHelpers::isRepeatAnonymousRating($feedback->entryId, $feedback->ipAddress)) {
+        if (!RequestHelpers::isCpRequest() && RequestHelpers::isRepeatAnonymousRating($feedback->entryId, $feedback->ipAddress)) {
             $this->setFailFlash(Craft::t('feedback', 'Too many anonymous ratings on this entry today'));
             return null;
         }
@@ -559,12 +559,16 @@ class FeedbackController extends Controller
     {
         if (!RequestHelpers::isCpRequest()) {
             // get IP and User Agent
-            $feedback->ipAddress = $request->getUserIP();
             $feedback->userAgent = $request->getUserAgent();
+            $feedback->ipAddress = $request->getUserIP();
         }
 
         // get form fields
-        $feedback->rating = $request->getParam('rating', $feedback->rating);
+        // if NOT of type "question", get the rating
+        if ($request->getParam('feedbackType', $feedback->feedbackType) != FeedbackType::Question) {
+            $feedback->rating = $request->getParam('rating', $feedback->rating);
+        }
+        // everything else
         $feedback->entryId = $request->getParam('entryId', $feedback->entryId);
         $feedback->name = $request->getParam('name', $feedback->name);
         $feedback->email = $request->getParam('email', $feedback->email);

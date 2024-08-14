@@ -11,17 +11,14 @@ use craft\elements\actions\Delete;
 use craft\elements\Entry;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
-use DateTime;
 use LitEmoji\LitEmoji;
 use mortscode\feedback\elements\db\FeedbackElementQuery;
 use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\enums\FeedbackType;
 use mortscode\feedback\Feedback;
-use mortscode\feedback\helpers\RequestHelpers;
-use mortscode\feedback\models\FeedbackModel;
 use mortscode\feedback\records\FeedbackRecord;
-use mortscode\feedback\elements\actions\SetStatus;
+use mortscode\feedback\elements\actions\SetFeedbackStatus;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -76,6 +73,34 @@ class FeedbackElement extends Element
         return true;
     }
 
+    // PERMISSIONS ========
+    /**
+     * @param $user
+     * @return bool
+     */
+    public function canView($user): bool
+    {
+        return $user->admin;
+    }
+
+    /**
+     * @param $user
+     * @return bool
+     */
+    public function canSave($user): bool
+    {
+        return $user->admin;
+    }
+
+    /**
+     * @param $user
+     * @return bool
+     */
+    public function canDelete($user): bool
+    {
+        return $user->admin;
+    }
+
     /**
      * @return array[]
      */
@@ -86,6 +111,11 @@ class FeedbackElement extends Element
             FeedbackStatus::Pending => ['label' => ucfirst(FeedbackStatus::Pending), 'color' => 'yellow'],
             FeedbackStatus::Spam => ['label' => ucfirst(FeedbackStatus::Spam), 'color' => 'red'],
         ];
+    }
+
+    protected static function includeSetStatusAction(): bool
+    {
+        return true;
     }
 
     /**
@@ -105,32 +135,18 @@ class FeedbackElement extends Element
     }
 
     // PUBLIC VARIABLES
-    /**
-     * @var int|null ID
-     */
-    public ?int $id;
 
     /**
      * @var int|null Entry ID
      */
-    public $entryId;
-
-    /**
-     * @var DateTime|null Date created
-     */
-    public ?\DateTime $dateCreated;
-
-    /**
-     * @var DateTime|null Date updated
-     */
-    public ?\DateTime $dateUpdated;
+    public ?int $entryId = null;
 
     /**
      * name
      *
-     * @var string|null
+     * @var string
      */
-    public ?string $name = null;
+    public string $name = '';
 
     /**
      * email
@@ -142,58 +158,58 @@ class FeedbackElement extends Element
     /**
      * rating
      *
-     * @var int
+     * @var int|null
      */
-    public $rating = null;
+    public ?int $rating = null;
 
     /**
      * comment
      *
      * @var string
      */
-    public $comment = null;
+    public string $comment = '';
 
     /**
      * response
      *
      * @var string
      */
-    public $response = null;
+    public string $response = '';
 
     /**
      * ipAddress
      *
-     * @var string
+     * @var string|null
      */
-    public $ipAddress = null;
+    public ?string $ipAddress = null;
 
     /**
      * userAgent
      *
-     * @var string
+     * @var string|null
      */
-    public $userAgent = null;
+    public ?string $userAgent = null;
 
     /**
      * FeedbackType
      *
-     * @var string
+     * @var string|null
      */
-    public $feedbackType = null;
+    public ?string $feedbackType = null;
 
     /**
      * feedbackStatus
      *
-     * @var string
+     * @var string|null
      */
-    public $feedbackStatus = null;
+    public ?string $feedbackStatus = null;
 
     /**
      * feedbackOrigin
      *
      * @var string|null
      */
-    public $feedbackOrigin = null;
+    public ?string $feedbackOrigin = null;
 
     /**
      * @inheritdoc
@@ -214,6 +230,8 @@ class FeedbackElement extends Element
     {
         return $this->name;
     }
+
+
 
     /**
      * @return string
@@ -243,39 +261,23 @@ class FeedbackElement extends Element
     }
 
     /**
-     * @param string|null $context
-     * @return array[]
+     * @inheritdoc
      */
     protected static function defineSources(string $context = null): array
     {
         return [
             [
-                'key' => 'approved',
-                'label' => 'Approved',
-                'criteria' => [
-                    'feedbackStatus' => FeedbackStatus::Approved,
-                    'feedbackType' => [FeedbackType::Question, FeedbackType::Review]
-                ]
-            ],
-            [
-                'key' => 'pending',
-                'label' => 'Pending',
+                'key' => 'allFeedback',
+                'label' => 'All Feedback',
                 'badgeCount' => (new FeedbackElement)->getTotalPendingCount(),
                 'criteria' => [
-                    'feedbackStatus' => FeedbackStatus::Pending,
-                    'feedbackType' => [FeedbackType::Question, FeedbackType::Review]
+                    'feedbackType' => [FeedbackType::Review, FeedbackType::Question],
+                    'feedbackStatus' => [FeedbackStatus::Approved, FeedbackStatus::Pending],
                 ]
             ],
             [
-                'key' => 'spam',
-                'label' => 'Spam',
-                'criteria' => [
-                    'feedbackStatus' => FeedbackStatus::Spam,
-                ]
-            ],
-            [
-                'key' => 'allReviews',
-                'label' => 'All Reviews',
+                'key' => 'reviews',
+                'label' => 'Reviews',
                 'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Review),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Review,
@@ -283,8 +285,8 @@ class FeedbackElement extends Element
                 ]
             ],
             [
-                'key' => 'allQuestions',
-                'label' => 'All Questions',
+                'key' => 'questions',
+                'label' => 'Questions',
                 'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Question),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Question,
@@ -292,14 +294,23 @@ class FeedbackElement extends Element
                 ]
             ],
             [
-                'key' => 'allAnonymous',
-                'label' => 'All Anonymous',
+                'key' => 'anonymous',
+                'label' => 'Anonymous',
                 'badgeCount' => (new FeedbackElement)->getPendingCount(FeedbackType::Rating),
                 'criteria' => [
                     'feedbackType' => FeedbackType::Rating,
                     'feedbackStatus' => [FeedbackStatus::Approved, FeedbackStatus::Pending],
                 ]
             ],
+            [
+                'key' => 'allSpam',
+                'label' => 'Spam',
+                'criteria' => [
+                    'feedbackType' => [FeedbackType::Review, FeedbackType::Question],
+                    'feedbackStatus' => [FeedbackStatus::Spam],
+                ]
+            ]
+
         ];
     }
 
@@ -330,8 +341,10 @@ class FeedbackElement extends Element
     protected static function defineDefaultTableAttributes(string $source): array
     {
         return [
-            'name',
             'dateCreated',
+            'recipe',
+            'hasResponse',
+            'Comment'
         ];
     }
 
@@ -533,7 +546,7 @@ class FeedbackElement extends Element
         ]);
 
         // Set Status
-        $actions[] = SetStatus::class;
+        $actions[] = SetFeedbackStatus::class;
 
         return $actions;
     }

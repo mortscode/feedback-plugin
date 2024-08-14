@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.0.23 - 2024-08-14
+### Fixed
+- SetStatus functionality in Feedback index
+### Updated
+- Feedback index sources
+- SetFeedbackStatus method now saves Element
+- Updated Servd Assets dev dependency
+- Fixed entry buttons for selected sources
+- Default table attributes
+
 ## 4.0.22 - 2024-08-13
 ### Updated
 - Additional typing for Craft 4.x

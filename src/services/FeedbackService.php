@@ -210,7 +210,8 @@ class FeedbackService extends Component
     {
         foreach ($feedbackItems as $feedback) {
             if ($feedback) {
-                $this->_updateFeedbackStatus($feedback->id, $status);
+                $feedback->feedbackStatus = $status;
+                Craft::$app->getElements()->saveElement($feedback);
             } else {
                 Craft::error("Can't update status");
             }
@@ -269,27 +270,5 @@ class FeedbackService extends Component
                 EmailHelpers::sendEmail(FeedbackMessages::MESSAGE_FEEDBACK_APPROVED, $emailData);
             }
         }
-    }
-
-
-    // PRIVATE METHODS ==================================
-    // ==================================================
-    /**
-     * updateFeedbackStatus
-     *
-     * @param int $elementId
-     * @param string $status
-     * @return void
-     * @throws Exception
-     */
-    private function _updateFeedbackStatus(int $elementId, string $status): void
-    {
-        if (!$elementId) {
-            return;
-        }
-
-        Craft::$app->getDb()->createCommand()
-            ->update('{{%feedback_record}}', ['feedbackStatus' => $status], ['id' => $elementId])
-            ->execute();
     }
 }

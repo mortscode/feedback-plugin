@@ -11,11 +11,14 @@
 namespace mortscode\feedback;
 
 use craft\base\Model;
+use craft\events\DefineHtmlEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterGqlSchemaComponentsEvent;
 use craft\models\SystemMessage;
 use craft\services\SystemMessages;
+use craft\elements\Entry;
+use craft\helpers\UrlHelper;
 use mortscode\feedback\elements\FeedbackElement;
 use mortscode\feedback\enums\FeedbackMessages;
 use mortscode\feedback\enums\FeedbackType;
@@ -115,28 +118,33 @@ class Feedback extends Plugin
         parent::init();
         self::$plugin = $this;
 
-        Craft::$app->getView()->hook('cp.entries.edit.details', function(array $context) {
+        // Add html to selected entry types
+        Event::on(
+            Entry::class,
+            Entry::EVENT_DEFINE_SIDEBAR_HTML,
+            static function(DefineHtmlEvent $event) {
+                $entry = $event->sender;
+                $entryId = $entry->id;
+                $entryHandle = $entry->section->handle;
 
-            $entryId = $context['entryId'];
-            $entryHandle = $context['sectionHandle'];
+                $settings = self::$plugin->getSettings();
 
-            $settings = self::$plugin->getSettings();
+                $selectedSections = [];
+                foreach ($settings->feedbackSections as $section) {
+                    $selectedSections[] = $section;
+                }
 
-            $selectedSections = [];
-            foreach ($settings->feedbackSections as $section) {
-                $selectedSections[] = $section;
+                $sectionIsSelected = in_array((string)$entryHandle, $selectedSections, true);
+
+                if ($sectionIsSelected) {
+
+                    $reviewUrl = UrlHelper::url('/admin/feedback/create/' . FeedbackType::Review . '/' . $entryId);
+                    $questionUrl = UrlHelper::url('/admin/feedback/create/' . FeedbackType::Question . '/' . $entryId);
+
+                    $event->html .= '<hr/><div class="meta" style="padding: 24px 24px 18px"><h2 class="heading">Add Feedback</h2><div class="flex"><a href="' . $reviewUrl . '" class="btn secondary">Add Review</a><a href="' . $questionUrl . '" class="btn secondary">Add Question</a></div></div>';
+                }
             }
-
-            $sectionIsSelected = in_array((string)$entryHandle, $selectedSections, true);
-
-            if ($sectionIsSelected) {
-
-                $reviewUrl = '/admin/feedback/create/' . FeedbackType::Review . '/' . $entryId;
-                $questionUrl = '/admin/feedback/create/' . FeedbackType::Question . '/' . $entryId;
-
-                return '<hr/><div class="meta" style="padding: 24px 24px 18px"><h2 class="heading">Add Feedback</h2><div class="flex"><a href="' . $reviewUrl . '" class="btn secondary">Add Review</a><a href="' . $questionUrl . '" class="btn secondary">Add Question</a></div></div>';
-            }
-        });
+        );
 
         // Register our site routes
         Event::on(

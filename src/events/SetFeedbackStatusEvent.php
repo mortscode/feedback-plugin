@@ -4,7 +4,7 @@ namespace mortscode\feedback\events;
 
 use yii\base\Event;
 
-class SetStatusEvent extends Event
+class SetFeedbackStatusEvent extends Event
 {
     // Properties
     // =========================================================================

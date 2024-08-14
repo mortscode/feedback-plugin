@@ -24,7 +24,8 @@ class RequestHelpers
     /**
      * Check if user has already left an anonymous rating today
      *
-     * @param FeedbackRecord $feedback
+     * @param int $entryId
+     * @param string $ip
      * @return bool
      */
     public static function isRepeatAnonymousRating(int $entryId, string $ip): bool {
