@@ -2,9 +2,9 @@
 
 namespace mortscode\feedback\gql\interfaces\elements;
 
+use Craft;
 use mortscode\feedback\gql\types\generators\FeedbackGenerator;
 use craft\gql\interfaces\Element as ElementInterface;
-use craft\gql\TypeManager;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\InterfaceType;
 use craft\gql\GqlEntityRegistry;
@@ -43,7 +43,7 @@ class FeedbackInterface extends ElementInterface
 
     public static function getFieldDefinitions(): array
     {
-        return TypeManager::prepareFieldDefinitions(array_merge(
+        return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(
             parent::getFieldDefinitions(),
             [
                 'entryId' => [
@@ -85,8 +85,7 @@ class FeedbackInterface extends ElementInterface
                     'name' => 'feedbackStatus',
                     'type' => Type::string(),
                     'description' => 'The status of the feedback [approved, pending, spam]'
-                ]
-            ]
-        ), self::getName());
+                ],
+            ]), self::getName());
     }
 }

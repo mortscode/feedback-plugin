@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.0.24 - 2024-08-18
+### Updated
+- TypeManager::prepareFieldDefinitions() has been updated to use craft\services\Gql::prepareFieldDefinition()
+- Applies to GQL interface and generator
+
 ## 4.0.23 - 2024-08-14
 ### Fixed
 - SetStatus functionality in Feedback index

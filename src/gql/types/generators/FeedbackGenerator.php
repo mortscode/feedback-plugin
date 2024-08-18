@@ -28,7 +28,7 @@ class FeedbackGenerator extends Generator implements GeneratorInterface, SingleG
         $typeName = FeedbackElement::gqlTypeNameByContext(null);
         $contentFieldGqlTypes = self::getContentFields($context);
 
-        $feedbackFields = TypeManager::prepareFieldDefinitions(array_merge(
+        $feedbackFields = Craft::$app->getGql()->prepareFieldDefinitions(array_merge(
             FeedbackInterface::getFieldDefinitions(),
             $contentFieldGqlTypes
         ), $typeName);
