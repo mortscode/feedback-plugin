@@ -1,4 +1,4 @@
-# Feedback plugin for Craft CMS 3.x
+# Feedback plugin for Craft CMS 4.x
 
 A comments and reviews plugin for Craft CMS 3.x
 
