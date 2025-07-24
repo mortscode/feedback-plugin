@@ -78,7 +78,7 @@ class FeedbackElement extends Element
      * @param $user
      * @return bool
      */
-    public function canView($user): bool
+    public function canView(\craft\elements\User $user): bool
     {
         return $user->admin;
     }
@@ -87,7 +87,7 @@ class FeedbackElement extends Element
      * @param $user
      * @return bool
      */
-    public function canSave($user): bool
+    public function canSave(\craft\elements\User $user): bool
     {
         return $user->admin;
     }
@@ -96,7 +96,7 @@ class FeedbackElement extends Element
      * @param $user
      * @return bool
      */
-    public function canDelete($user): bool
+    public function canDelete(\craft\elements\User $user): bool
     {
         return $user->admin;
     }
@@ -353,7 +353,7 @@ class FeedbackElement extends Element
      * @return string
      * @throws InvalidConfigException
      */
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
         switch ($attribute) {
             case 'recipe':
