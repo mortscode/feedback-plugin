@@ -393,7 +393,7 @@ class FeedbackElement extends Element
                 return ucfirst($this->feedbackType);
         }
 
-        return parent::tableAttributeHtml($attribute);
+        return parent::attributeHtml($attribute);
     }
 
     /**
