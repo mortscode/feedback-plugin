@@ -22,16 +22,20 @@ class EmailHelpers
      * @throws InvalidConfigException
      */
     public static function sendEmail(string $key, array $data = []): bool {
-        if ($data['email']) {
-            $mailer = Craft::$app->getMailer();
+        if (!empty($data['email']) && filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            try {
+                $mailer = Craft::$app->getMailer();
 
-            $message = $mailer
-                ->composeFromKey($key, ['feedback' => $data])
-                ->setTo($data['email']);
+                $message = $mailer
+                    ->compose($key, ['feedback' => $data])
+                    ->setTo($data['email']);
 
-            $message->send();
-
-            return true;
+                return $message->send();
+                
+            } catch (\Exception $e) {
+                Craft::error('Failed to send feedback email: ' . $e->getMessage(), __METHOD__);
+                return false;
+            }
         }
 
         return false;
