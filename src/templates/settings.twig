@@ -19,7 +19,7 @@
 {% do view.registerAssetBundle("mortscode\\feedback\\assetbundles\\feedback\\FeedbackAsset") %}
 
 {# Create array of all the available entry types #}
-{% set allEntryTypes = craft.app.sections.allSections %}
+{% set allEntryTypes = craft.app.entries.allSections %}
 {% set entryTypes = [] %}
 {% for entryType in allEntryTypes %}
     {% set entryTypes = entryTypes|merge([{label: entryType.name, value: entryType.handle}]) %}
