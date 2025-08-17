@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.0.2 - 2025-08-16
+
+### Updated
+
+-   Updated to use ReCaptcha Enterprise
+-   Added settings fields for RecaptchaSiteKey, RecaptchaProjectId, and RecaptchaApiKey
+
 ## 5.0.1 - 2025-08-07
 
 ### Fixed

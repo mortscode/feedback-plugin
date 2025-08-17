@@ -24,6 +24,7 @@ use mortscode\feedback\Feedback;
 use mortscode\feedback\helpers\RequestHelpers;
 
 use Craft;
+use craft\helpers\App;
 use craft\web\Controller;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
@@ -83,14 +84,22 @@ class FeedbackController extends Controller
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
 
-        if (Feedback::$plugin->settings->recaptchaEnabled && !RequestHelpers::isCpRequest()) {
+        if (Feedback::$plugin->settings->recaptchaEnabled && !Craft::$app->request->getIsCpRequest()) {
+            
+            $token = $request->post('token');
+            
+            if (!$token) {
+                return $this->asFailure('Missing reCAPTCHA token.');
+            }
+            
+            $ok = $this->validateRecaptchaEnterprise(
+                $token,
+                'submit', // must match the JS action
+                (float)(Feedback::$plugin->settings->recaptchaMinScore ?? App::env('RECAPTCHA_ENT_MIN_SCORE') ?: 0.5)
+            );
 
-            // first, validate the Recaptcha success
-            $recaptchaBody = $this->_getRecaptchaBody();
-
-            if (!$recaptchaBody['success']) {
-                // error if ReCaptcha fails
-                return $this->asErrorJson('There was a problem validating the user.');
+            if (!$ok) {
+                return $this->asFailure('There was a problem validating the user.');
             }
         }
 
@@ -582,33 +591,103 @@ class FeedbackController extends Controller
     }
 
     /**
-     * _getRecaptchaBody
-     * Return the 'success' value back from Recaptcha on post request
-     * If no CP value in the "Recaptcha Secret Key" setting, return true
-     *
-     * @return mixed
-     * @throws GuzzleException
+     * Validates Google reCAPTCHA Enterprise token
+     * 
+     * This method verifies the reCAPTCHA Enterprise token by sending a request
+     * to Google's reCAPTCHA Enterprise API to assess the legitimacy of the submission
+     * and prevent automated abuse.
+     * 
+     * @param string $token The reCAPTCHA token received from the client-side
+     * @param string $action The action name associated with the reCAPTCHA token
+     * @param float $threshold The minimum score threshold (0.0 to 1.0) for accepting the token
+     * @return bool Returns true if the token is valid and meets the score threshold, false otherwise
+     * @throws \Exception If the reCAPTCHA API request fails or returns an error
      */
-    private function _getRecaptchaBody()
+    private function validateRecaptchaEnterprise(string $token, string $expectedAction, float $minScore = 0.5): bool
     {
-        $request = Craft::$app->request->post();
-        $userIp = Craft::$app->request->getUserIP();
-        $client = new Client();
-        $secret = Feedback::$plugin->getSettings()->recaptchaSecretKey;
-        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $projectId = App::env(Feedback::$plugin->getSettings()->recaptchaEntProjectId) ?? App::env('RECAPTCHA_ENT_PROJECT_ID');
+        $siteKey   = App::env(Feedback::$plugin->getSettings()->recaptchaEntSiteKey) ?? App::env('RECAPTCHA_ENT_SITE_KEY');
+        $apiKey    = App::env(Feedback::$plugin->getSettings()->recaptchaEntApiKey) ?? App::env('RECAPTCHA_ENT_API_KEY');
 
-        if (array_key_exists('token', $request)) {
-            $response = $client->request('POST', $url, [
-                'query' => [
-                    'secret' => $secret,
-                    'response' => $request['token'],
-                    'remoteip' => $userIp,
-                ]
-            ]);
-//            return $response->getBody();
-            return json_decode((string)$response->getBody(), true);
+        if (!$projectId || !$siteKey || !$apiKey) {
+            Craft::error('reCAPTCHA Enterprise not configured.', __METHOD__);
+            return false;
         }
 
-        return $this->asErrorJson('There was no response key attached to the request, as provided by the front-end script. We can not continue without this key.');
+        $url = sprintf(
+            'https://recaptchaenterprise.googleapis.com/v1/projects/%s/assessments?key=%s',
+            rawurlencode($projectId),
+            rawurlencode($apiKey)
+        );
+
+        $payload = [
+            'event' => [
+                'token'           => $token,
+                'siteKey'         => $siteKey,
+                'expectedAction'  => $expectedAction,
+                'userIpAddress'   => Craft::$app->getRequest()->getUserIP(),
+                'userAgent'       => Craft::$app->getRequest()->getUserAgent(),
+            ],
+        ];
+
+        try {
+            $client = new Client(['timeout' => 5]);
+            
+            // Get the current site URL for the referer header
+            $siteUrl = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
+            
+            $res = $client->request('POST', $url, [
+                'json' => $payload,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Referer' => $siteUrl,
+                    'User-Agent' => Craft::$app->getRequest()->getUserAgent() ?: 'CraftCMS-FeedbackPlugin/1.0',
+                ],
+            ]);
+
+            $body = json_decode((string)$res->getBody(), true);
+
+            // Log the full response for debugging
+            Craft::info('reCAPTCHA Enterprise response: ' . json_encode($body), __METHOD__);
+
+            // Check if there's an error in the response
+            if (isset($body['error'])) {
+                Craft::error('reCAPTCHA Enterprise API error: ' . $body['error']['message'] . ' (Code: ' . $body['error']['code'] . ')', __METHOD__);
+                return false;
+            }
+
+            // 1) Token validity (signature/expiry)
+            if (empty($body['tokenProperties']['valid'])) {
+                Craft::warning('reCAPTCHA token invalid: '.($body['tokenProperties']['invalidReason'] ?? 'unknown'), __METHOD__);
+                return false;
+            }
+
+            Craft::info('reCAPTCHA token is valid', __METHOD__);
+
+            // 2) Action must match what you executed on the client
+            if (($body['tokenProperties']['action'] ?? null) !== $expectedAction) {
+                Craft::warning('reCAPTCHA action mismatch. Expected: '.$expectedAction.', Got: '.($body['tokenProperties']['action'] ?? 'null'), __METHOD__);
+                return false;
+            }
+
+            // 3) Score check (0.0–1.0). Tune threshold to your risk tolerance
+            $score = (float)($body['riskAnalysis']['score'] ?? 0.0);
+
+            Craft::info("reCAPTCHA score: {$score}, minimum required: {$minScore}", __METHOD__);
+
+            if ($score < $minScore) {
+                Craft::warning("reCAPTCHA score too low: {$score}", __METHOD__);
+                return false;
+            }
+
+            // (Optional) Check for high-risk reasons if you want:
+            // $reasons = $body['riskAnalysis']['reasons'] ?? [];
+
+            return true;
+
+        } catch (\Throwable $e) {
+            Craft::error('reCAPTCHA Enterprise verification error: '.$e->getMessage(), __METHOD__);
+            return false;
+        }
     }
 }
