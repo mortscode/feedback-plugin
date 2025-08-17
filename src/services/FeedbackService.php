@@ -18,6 +18,7 @@ use mortscode\feedback\enums\FeedbackOrigin;
 use mortscode\feedback\Feedback;
 
 use Craft;
+use craft\helpers\App;
 use craft\base\Component;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\helpers\EmailHelpers;
@@ -112,17 +113,17 @@ class FeedbackService extends Component
     }
 
     /**
-     * getRecaptchaKey
+     * getRecaptchaEntSiteKey
      *
      * @return String | null
      */
-    public function getRecaptchaKey(): ?string
+    public function getRecaptchaEntSiteKey(): ?string
     {
         $settings = Feedback::$plugin->getSettings();
-        $recaptchaKey = Craft::parseEnv($settings->recaptchaSiteKey);
+        $recaptchaKey = App::parseEnv($settings->recaptchaEntSiteKey);
 
         if ($recaptchaKey) {
-            return Craft::parseEnv($settings->recaptchaSiteKey);
+            return App::parseEnv($settings->recaptchaEntSiteKey);
         }
 
         return null;
@@ -136,10 +137,10 @@ class FeedbackService extends Component
     public function getEmailHeaderUrl(): ?string
     {
         $settings = Feedback::$plugin->getSettings();
-        $emailHeaderUrl = Craft::parseEnv($settings->emailHeaderUrl);
+        $emailHeaderUrl = App::parseEnv($settings->emailHeaderUrl);
 
         if ($emailHeaderUrl) {
-            return Craft::parseEnv($settings->emailHeaderUrl);
+            return App::parseEnv($settings->emailHeaderUrl);
         }
 
         return null;

@@ -91,17 +91,17 @@ class FeedbackVariable
     }
 
     /**
-     * getReCaptchaKey
+     * getRecaptchaEntSiteKey
      *
      * @return string
      */
-    public function getRecaptchaKey(): ?string
+    public function getRecaptchaEntSiteKey(): ?string
     {
-        return Feedback::$plugin->feedbackService->getRecaptchaKey();
+        return Feedback::$plugin->feedbackService->getRecaptchaEntSiteKey();
     }
 
     /**
-     * getReCaptchaKey
+     * getEmailHeaderUrl
      *
      * @return string
      */

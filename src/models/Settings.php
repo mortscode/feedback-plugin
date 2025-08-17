@@ -43,6 +43,27 @@ class Settings extends Model
     public bool $recaptchaEnabled = false;
 
     /**
+     * ReCaptcha Enterprise Project ID
+     *
+     * @var string
+     */
+    public ?string $recaptchaEntProjectId = null;
+
+    /**
+     * ReCaptcha Enterprise Site Key
+     *
+     * @var string
+     */
+    public ?string $recaptchaEntSiteKey = null;
+
+    /**
+     * ReCaptcha Enterprise Api Key
+     *
+     * @var string
+     */
+    public ?string $recaptchaEntApiKey = null;
+
+    /**
      * ReCaptcha Site Key
      *
      * @var string

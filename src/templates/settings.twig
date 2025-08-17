@@ -43,19 +43,28 @@
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'ReCaptcha Site Key',
-    id: 'recaptchaSiteKey',
-    name: 'recaptchaSiteKey',
-    value: settings.recaptchaSiteKey,
+    label: 'ReCaptcha Enterprise Project ID',
+    id: 'recaptchaEntProjectId',
+    name: 'recaptchaEntProjectId',
+    value: settings.recaptchaEntProjectId,
     suggestEnvVars: true,
     size: 50
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'ReCaptcha Secret Key',
-    id: 'recaptchaSecretKey',
-    name: 'recaptchaSecretKey',
-    value: settings.recaptchaSecretKey,
+    label: 'ReCaptcha Enterprise Site Key',
+    id: 'recaptchaEntSiteKey',
+    name: 'recaptchaEntSiteKey',
+    value: settings.recaptchaEntSiteKey,
+    suggestEnvVars: true,
+    size: 50
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'ReCaptcha Enterprise API Key',
+    id: 'recaptchaEntApiKey',
+    name: 'recaptchaEntApiKey',
+    value: settings.recaptchaEntApiKey,
     suggestEnvVars: true,
     size: 50
 }) }}
