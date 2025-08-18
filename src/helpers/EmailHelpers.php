@@ -24,13 +24,28 @@ class EmailHelpers
     public static function sendEmail(string $key, array $data = []): bool {
         if (!empty($data['email']) && filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             try {
+                $systemMessages = Craft::$app->getSystemMessages();
+                $message = $systemMessages->getMessage($key);
+                
+                if (!$message) {
+                    Craft::error("System message '{$key}' not found", __METHOD__);
+                    return false;
+                }
+
                 $mailer = Craft::$app->getMailer();
+                $view = Craft::$app->getView();
+                
+                // Render the message body with the feedback data
+                $body = $view->renderString($message->body, ['feedback' => $data]);
+                $subject = $view->renderString($message->subject, ['feedback' => $data]);
 
-                $message = $mailer
-                    ->compose($key, ['feedback' => $data])
-                    ->setTo($data['email']);
+                $email = $mailer
+                    ->compose()
+                    ->setTo($data['email'])
+                    ->setSubject($subject)
+                    ->setHtmlBody($body);
 
-                return $message->send();
+                return $email->send();
                 
             } catch (\Exception $e) {
                 Craft::error('Failed to send feedback email: ' . $e->getMessage(), __METHOD__);
