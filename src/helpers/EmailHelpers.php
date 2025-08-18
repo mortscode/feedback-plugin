@@ -10,6 +10,7 @@ use mortscode\feedback\enums\FeedbackEvents;
 use mortscode\feedback\enums\FeedbackStatus;
 use mortscode\feedback\records\FeedbackRecord;
 use yii\base\InvalidConfigException;
+use yii\helpers\Markdown;
 
 class EmailHelpers
 {
@@ -39,11 +40,14 @@ class EmailHelpers
                 $body = $view->renderString($message->body, ['feedback' => $data]);
                 $subject = $view->renderString($message->subject, ['feedback' => $data]);
 
+                // Convert markdown to HTML
+                $htmlBody = Markdown::process($body);
+
                 $email = $mailer
                     ->compose()
                     ->setTo($data['email'])
                     ->setSubject($subject)
-                    ->setHtmlBody($body);
+                    ->setHtmlBody($htmlBody);
 
                 return $email->send();
                 
