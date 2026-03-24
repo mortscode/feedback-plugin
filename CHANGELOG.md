@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.0.3.1 - 2026-03-23
+
+### Fixed
+
+-   Fixed fatal error in `EVENT_DEFINE_SIDEBAR_HTML` handler when triggered by Matrix blocks or other nested elements that lack a section — added guard clauses to skip processing if the element has no section or no ID
+
 ## 5.0.3 - 2026-03-23
 
 ### Fixed
 
 -   Fixed PHPDoc warnings in `FeedbackElementQuery` — added `@extends` generic tag to the class and `@param mixed $value` doc comments to all untyped setter methods
--   Fixed fatal error in `EVENT_DEFINE_SIDEBAR_HTML` handler when triggered by Matrix blocks or other nested elements that lack a section — added guard clauses to skip processing if the element has no section or no ID
 
 ## 5.0.2.2 - 2025-08-18
 

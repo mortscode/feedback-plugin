@@ -28,7 +28,7 @@ use mortscode\feedback\variables\FeedbackVariable;
 use mortscode\feedback\models\Settings;
 use mortscode\feedback\widgets\FeedbackWidget;
 
-use craft\Craft;
+use Craft;
 use craft\base\Plugin;
 use craft\web\UrlManager;
 use craft\services\Elements;
